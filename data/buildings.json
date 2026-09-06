@@ -6,7 +6,8 @@
     "wood": 8,
     "jobs": 0,
     "capacity": 4,
-    "requirement": "Tierra libre"
+    "requirement": "Tierra libre",
+    "category": "Viviendas"
   },
   "well": {
     "label": "Pozo",
@@ -14,7 +15,11 @@
     "coins": 20,
     "wood": 4,
     "jobs": 0,
-    "requirement": "Agua: hasta 10 pasos por caminos"
+    "requirement": "Agua hasta 16 pasos por caminos",
+    "category": "Servicios",
+    "service": "water",
+    "radius": 16,
+    "upkeep": 0
   },
   "farm": {
     "label": "Granja",
@@ -27,7 +32,9 @@
     "outputs": {
       "grain": 16
     },
-    "requirement": "Toda la huella sobre tierra fértil"
+    "requirement": "Toda la huella sobre tierra fértil",
+    "category": "Alimentos",
+    "fertile": true
   },
   "lumber": {
     "label": "Leñadores",
@@ -40,7 +47,8 @@
     "outputs": {
       "wood": 8
     },
-    "requirement": "Bosque a un máximo de 3 casillas de la huella"
+    "requirement": "Bosque a un máximo de 3 casillas de la huella",
+    "category": "Materiales"
   },
   "fishery": {
     "label": "Pesquería",
@@ -53,7 +61,9 @@
     "outputs": {
       "fish": 6
     },
-    "requirement": "Un borde junto al agua"
+    "requirement": "Un borde junto al agua",
+    "category": "Alimentos",
+    "coastal": true
   },
   "saltery": {
     "label": "Salazón",
@@ -69,7 +79,8 @@
     "outputs": {
       "salted_fish": 3
     },
-    "requirement": "Tierra libre; necesita sardina y sal"
+    "requirement": "Tierra libre; necesita sardina y sal",
+    "category": "Talleres"
   },
   "warehouse": {
     "label": "Almacén portuario",
@@ -77,6 +88,306 @@
     "coins": 0,
     "wood": 0,
     "jobs": 0,
-    "requirement": "Edificio inicial protegido"
+    "requirement": "Edificio inicial protegido",
+    "category": "Puerto"
+  },
+  "quarry": {
+    "label": "Cantera",
+    "category": "Materiales",
+    "size": 2,
+    "coins": 70,
+    "wood": 12,
+    "jobs": 2,
+    "work": 120,
+    "inputs": {},
+    "outputs": {
+      "stone": 8
+    },
+    "requirement": "Yacimiento de granito a un máximo de 3 casillas",
+    "deposit": "rock"
+  },
+  "claypit": {
+    "label": "Barrera",
+    "category": "Materiales",
+    "size": 2,
+    "coins": 50,
+    "wood": 8,
+    "jobs": 1,
+    "work": 120,
+    "inputs": {},
+    "outputs": {
+      "clay": 6
+    },
+    "requirement": "Yacimiento de arcilla a un máximo de 3 casillas",
+    "deposit": "clay"
+  },
+  "mine": {
+    "label": "Mina de hierro",
+    "category": "Materiales",
+    "size": 2,
+    "coins": 100,
+    "wood": 16,
+    "jobs": 2,
+    "work": 120,
+    "inputs": {},
+    "outputs": {
+      "iron": 5
+    },
+    "requirement": "Yacimiento de hierro a un máximo de 3 casillas",
+    "deposit": "ore",
+    "materials": {
+      "stone": 8
+    }
+  },
+  "sheep": {
+    "label": "Pastos de ovejas",
+    "category": "Alimentos",
+    "size": 3,
+    "coins": 65,
+    "wood": 10,
+    "jobs": 1,
+    "work": 120,
+    "inputs": {},
+    "outputs": {
+      "wool": 6
+    },
+    "requirement": "Tierra libre; conecta un camino al almacén"
+  },
+  "vineyard": {
+    "label": "Viñedo",
+    "category": "Alimentos",
+    "size": 3,
+    "coins": 70,
+    "wood": 12,
+    "jobs": 2,
+    "work": 120,
+    "inputs": {},
+    "outputs": {
+      "grapes": 10
+    },
+    "requirement": "Toda la huella sobre terreno fértil; uva para elaborar vino",
+    "fertile": true
+  },
+  "mill": {
+    "label": "Molino",
+    "category": "Talleres",
+    "size": 2,
+    "coins": 60,
+    "wood": 10,
+    "jobs": 1,
+    "work": 120,
+    "inputs": {
+      "grain": 4
+    },
+    "outputs": {
+      "flour": 6
+    },
+    "requirement": "Tierra libre; conecta un camino al almacén"
+  },
+  "bakery": {
+    "label": "Horno",
+    "category": "Talleres",
+    "size": 2,
+    "coins": 65,
+    "wood": 10,
+    "jobs": 1,
+    "work": 120,
+    "inputs": {
+      "flour": 3,
+      "wood": 1
+    },
+    "outputs": {
+      "bread": 9
+    },
+    "requirement": "Tierra libre; conecta un camino al almacén"
+  },
+  "winery": {
+    "label": "Bodega",
+    "category": "Talleres",
+    "size": 2,
+    "coins": 90,
+    "wood": 14,
+    "jobs": 2,
+    "work": 120,
+    "inputs": {
+      "grapes": 6
+    },
+    "outputs": {
+      "wine": 4
+    },
+    "requirement": "Tierra libre; conecta un camino al almacén"
+  },
+  "potter": {
+    "label": "Alfar",
+    "category": "Talleres",
+    "size": 2,
+    "coins": 70,
+    "wood": 10,
+    "jobs": 1,
+    "work": 120,
+    "inputs": {
+      "clay": 4,
+      "wood": 1
+    },
+    "outputs": {
+      "pottery": 4
+    },
+    "requirement": "Tierra libre; conecta un camino al almacén"
+  },
+  "smith": {
+    "label": "Herrería",
+    "category": "Talleres",
+    "size": 2,
+    "coins": 100,
+    "wood": 14,
+    "jobs": 2,
+    "work": 120,
+    "inputs": {
+      "iron": 3,
+      "wood": 2
+    },
+    "outputs": {
+      "tools": 3
+    },
+    "requirement": "Tierra libre; conecta un camino al almacén",
+    "materials": {
+      "stone": 10
+    }
+  },
+  "weaver": {
+    "label": "Tejedor",
+    "category": "Talleres",
+    "size": 2,
+    "coins": 80,
+    "wood": 12,
+    "jobs": 1,
+    "work": 120,
+    "inputs": {
+      "wool": 4
+    },
+    "outputs": {
+      "cloth": 3
+    },
+    "requirement": "Tierra libre; conecta un camino al almacén"
+  },
+  "market": {
+    "label": "Mercado",
+    "category": "Servicios",
+    "size": 2,
+    "coins": 65,
+    "wood": 10,
+    "jobs": 1,
+    "work": 120,
+    "inputs": {},
+    "outputs": {},
+    "requirement": "Mercado: alcance 24 pasos; 1 empleado; mantenimiento 2 monedas/día",
+    "service": "market",
+    "radius": 24,
+    "upkeep": 2,
+    "materials": {}
+  },
+  "clinic": {
+    "label": "Hospital",
+    "category": "Servicios",
+    "size": 2,
+    "coins": 90,
+    "wood": 10,
+    "jobs": 1,
+    "work": 120,
+    "inputs": {},
+    "outputs": {},
+    "requirement": "Hospital: alcance 26 pasos; 1 empleado; mantenimiento 3 monedas/día",
+    "service": "health",
+    "radius": 26,
+    "upkeep": 3,
+    "materials": {
+      "stone": 6
+    }
+  },
+  "chapel": {
+    "label": "Capilla",
+    "category": "Servicios",
+    "size": 2,
+    "coins": 80,
+    "wood": 10,
+    "jobs": 1,
+    "work": 120,
+    "inputs": {},
+    "outputs": {},
+    "requirement": "Capilla: alcance 28 pasos; 1 empleado; mantenimiento 2 monedas/día",
+    "service": "faith",
+    "radius": 28,
+    "upkeep": 2,
+    "materials": {
+      "stone": 6
+    }
+  },
+  "watch": {
+    "label": "Guardia",
+    "category": "Servicios",
+    "size": 2,
+    "coins": 75,
+    "wood": 10,
+    "jobs": 1,
+    "work": 120,
+    "inputs": {},
+    "outputs": {},
+    "requirement": "Guardia: alcance 24 pasos; 1 empleado; mantenimiento 2 monedas/día",
+    "service": "safety",
+    "radius": 24,
+    "upkeep": 2,
+    "materials": {
+      "stone": 6
+    }
+  },
+  "school": {
+    "label": "Escuela",
+    "category": "Servicios",
+    "size": 2,
+    "coins": 110,
+    "wood": 10,
+    "jobs": 1,
+    "work": 120,
+    "inputs": {},
+    "outputs": {},
+    "requirement": "Escuela: alcance 24 pasos; 1 empleado; mantenimiento 3 monedas/día",
+    "service": "education",
+    "radius": 24,
+    "upkeep": 3,
+    "materials": {
+      "stone": 6
+    }
+  },
+  "dock": {
+    "label": "Muelle comercial",
+    "category": "Puerto",
+    "size": 2,
+    "coins": 110,
+    "wood": 20,
+    "jobs": 0,
+    "work": 120,
+    "inputs": {},
+    "outputs": {},
+    "requirement": "Costa abierta al Atlántico y camino al almacén; habilita una nave por muelle",
+    "coastal": true,
+    "materials": {
+      "stone": 10
+    }
+  },
+  "depot": {
+    "label": "Depósito",
+    "category": "Puerto",
+    "size": 2,
+    "coins": 70,
+    "wood": 16,
+    "jobs": 0,
+    "work": 120,
+    "inputs": {},
+    "outputs": {},
+    "requirement": "Conectado: +800 de capacidad de almacén",
+    "storage": 800,
+    "materials": {
+      "stone": 8
+    }
   }
 }

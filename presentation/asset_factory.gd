@@ -16,7 +16,7 @@ static func material(color: Color) -> StandardMaterial3D:
 	materials[color] = mat
 	return mat
 
-## Simple geometry is reserved for terrain and interaction overlays.
+## Shared primitives also provide labelled prototypes for new buildings.
 static func box(parent: Node3D, size: Vector3, at: Vector3, color: Color) -> MeshInstance3D:
 	var mesh: BoxMesh
 	if meshes.has(size): mesh = meshes[size]
@@ -50,15 +50,21 @@ static func building(kind: String, size: int, id: int, title: String) -> Node3D:
 	var s: float = float(size)
 	var model_kind: String = HOUSE_VARIANTS[posmod(id, HOUSE_VARIANTS.size())] if kind == "house" else kind
 	var orientation: float = 0.0
-	var model: Node3D = Models.create(model_kind, orientation, Vector2.ONE * (s - 0.06))
+	var prototype: bool = not ResourceLoader.exists("res://assets/models/%s.glb" % model_kind)
+	var model: Node3D = null if prototype else Models.create(model_kind, orientation, Vector2.ONE * (s - 0.06))
+	root.set_meta("placeholder",prototype)
 	var height: float = 2.0
 	if model != null:
 		root.add_child(model)
 		model.position = Vector3(s / 2.0, 0.015, s / 2.0)
 		height = model.get_meta("model_height")
+	if prototype:
+		height = 1.2
+		var color: Color = Color.from_hsv(float(posmod(kind.hash(),360))/360.0,0.30,0.72)
+		box(root,Vector3(s-0.12,height,s-0.12),Vector3(s/2.0,height/2,s/2.0),color)
 	var name_label: Label3D = label(root, title, Vector3(s / 2.0, height + 0.55, s / 2.0), 26)
 	name_label.name = "Title"
-	name_label.hide()
+	name_label.visible = prototype
 	var status: Label3D = label(root, "", Vector3(s / 2.0, height + 0.22, s / 2.0), 23)
 	status.name = "Status"
 	status.hide()

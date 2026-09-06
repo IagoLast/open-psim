@@ -44,6 +44,7 @@ func _process(delta: float) -> void:
 	if snapshot.is_empty(): return
 	world.pan(delta)
 	hud.minimap.focus = world.focus
+	hud.minimap.zoom = world.camera.size
 	var stepped: int = runner.advance(sim,delta)
 	if stepped > 0: snapshot = sim.get_snapshot()
 	if runner.speed > 0: animation_time += minf(delta,0.25)*runner.speed
@@ -83,6 +84,7 @@ func locate(id: int) -> void:
 	var item: Dictionary = sim.building(id)
 	if item.is_empty(): return
 	world.focus = Vector3(item.x,0,item.z)
+	world.camera.size = 30
 	world.update_camera()
 	hud.selected_citizen = 0
 	hud.selected_building = id
@@ -104,7 +106,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			world.camera.size = maxf(12,world.camera.size-1.5)
 		if event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			world.camera.size = minf(52,world.camera.size+1.5)
+			world.camera.size = minf(160,world.camera.size+1.5)
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			var cell: int = world.cell_at(event.position)
 			if event.pressed:
@@ -114,7 +116,7 @@ func _unhandled_input(event: InputEvent) -> void:
 					drag_start = cell
 				elif tool == "select": select_at(event.position,cell)
 				elif tool == "demolish": command({"type":"demolish","cell":cell})
-				else: command({"type":"build","kind":tool,"x":cell%40,"z":cell/40})
+				else: command({"type":"build","kind":tool,"x":cell%sim.width(),"z":cell/sim.width()})
 			elif dragging:
 				dragging = false
 				if cell >= 0: command({"type":"road","cells":road_segment(drag_start,cell)})
@@ -126,8 +128,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		if cell < 0 or tool in ["select","demolish"]:
 			world.show_preview([],true)
 			return
-		var cells: Array = road_segment(drag_start,cell) if tool == "road" and dragging else ([cell] if tool == "road" else sim.footprint(tool,cell%40,cell/40))
-		var order: Dictionary = {"type":"road","cells":cells} if tool == "road" else {"type":"build","kind":tool,"x":cell%40,"z":cell/40}
+		var cells: Array = road_segment(drag_start,cell) if tool == "road" and dragging else ([cell] if tool == "road" else sim.footprint(tool,cell%sim.width(),cell/sim.width()))
+		var order: Dictionary = {"type":"road","cells":cells} if tool == "road" else {"type":"build","kind":tool,"x":cell%sim.width(),"z":cell/sim.width()}
 		var checked: Dictionary = sim.validate_command(order)
 		world.show_preview(cells,checked.ok)
 		hud.message_label.text = "Coste: %d monedas · %d madera · Clic para construir" % [checked.coins,checked.wood] if checked.ok else checked.message
@@ -140,14 +142,14 @@ func _input(event: InputEvent) -> void:
 
 func road_segment(start: int, end: int) -> Array:
 	var cells: Array = [start]
-	var x: int = start%40
-	var z: int = start/40
-	while x != end%40:
-		x += 1 if end%40 > x else -1
-		cells.append(z*40+x)
-	while z != end/40:
-		z += 1 if end/40 > z else -1
-		cells.append(z*40+x)
+	var x: int = start%sim.width()
+	var z: int = start/sim.width()
+	while x != end%sim.width():
+		x += 1 if end%sim.width() > x else -1
+		cells.append(z*sim.width()+x)
+	while z != end/sim.width():
+		z += 1 if end/sim.width() > z else -1
+		cells.append(z*sim.width()+x)
 	return cells
 
 func select_at(screen: Vector2, cell: int) -> void:
@@ -165,6 +167,10 @@ func select_at(screen: Vector2, cell: int) -> void:
 
 func action(name_value: String) -> void:
 	match name_value:
+		"overview":
+			world.focus = Vector3(64,0,64)
+			world.camera.size = 145
+			world.update_camera()
 		"save": hud.message_label.text = Save.save_game(sim)
 		"water":
 			world.water_view = not world.water_view

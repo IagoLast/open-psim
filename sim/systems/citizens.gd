@@ -1,16 +1,27 @@
 extends RefCounted
 const Paths = preload("res://sim/pathfinding.gd")
 
+const SERVICE_LABELS: Dictionary = {"water":"Agua","market":"Mercado","health":"Salud","faith":"Culto","safety":"Seguridad","education":"Educación"}
+
 static func refresh_services(sim: Variant) -> void:
-	var wells: Array = []
+	var coverage: Dictionary = {}
 	for item: Dictionary in sim.state.buildings:
-		if item.type == "well" and item.access >= 0: wells.append(Paths.distances(item.access, sim.roads))
-	for item: Dictionary in sim.state.buildings:
-		item.water = false
-		if item.type != "house": continue
-		for coverage: Dictionary in wells:
-			if coverage.get(item.access, 9999) <= sim.definitions.balance.water_distance: item.water = true
-	for citizen: Dictionary in sim.state.citizens: citizen.water = sim.building(citizen.home).get("water", false)
+		var definition: Dictionary = sim.definitions.buildings[item.type]
+		if not definition.has("service"): continue
+		item.service_active = item.active and item.connected and (definition.jobs == 0 or item.assigned > 0) and item.get("funded",true)
+		if not item.service_active: continue
+		var service: String = definition.service
+		if not coverage.has(service): coverage[service] = []
+		coverage[service].append({"distances":Paths.distances(item.access,sim.roads,sim.width()),"radius":definition.radius})
+	for home: Dictionary in sim.state.buildings:
+		if home.type != "house": continue
+		home.services = {}
+		for service: String in SERVICE_LABELS:
+			home.services[service] = false
+			for zone: Dictionary in coverage.get(service,[]):
+				if home.connected and zone.distances.get(home.access,99999) <= zone.radius: home.services[service] = true
+		home.water = home.services.water
+	for citizen: Dictionary in sim.state.citizens: citizen.water = sim.building(citizen.home).get("water",false)
 
 static func assign_jobs(sim: Variant) -> void:
 	var vacancies: Array = []
@@ -32,7 +43,7 @@ static func assign_jobs(sim: Variant) -> void:
 			if citizen.job != 0 or citizen.arriving: continue
 			var home: Dictionary = sim.building(citizen.home)
 			if not home.connected: continue
-			var distances: Dictionary = Paths.distances(home.access, sim.roads)
+			var distances: Dictionary = Paths.distances(home.access, sim.roads, sim.width())
 			for item: Dictionary in vacancies:
 				if not distances.has(item.access): continue
 				var score: Array = [-item.priority, distances[item.access], citizen.id, item.id]
@@ -43,6 +54,8 @@ static func assign_jobs(sim: Variant) -> void:
 			if citizen.id == best[2]: citizen.job = workplace.id
 		workplace.assigned += 1
 		if workplace.assigned >= sim.definitions.buildings[workplace.type].jobs: vacancies.erase(workplace)
+
+	refresh_services(sim)
 
 static func _less(a: Array, b: Array) -> bool:
 	for i: int in range(a.size()):
@@ -59,7 +72,7 @@ static func move(sim: Variant) -> void:
 		var going_work: bool = working and not job.is_empty() and not citizen.arriving
 		var target: int = job.access if going_work else home.access
 		if target != citizen.destination or citizen.route_version != sim.topology:
-			citizen.route = Paths.route(citizen.cell, target, sim.roads)
+			citizen.route = Paths.route(citizen.cell, target, sim.roads, sim.width())
 			citizen.destination = target
 			citizen.route_version = sim.topology
 			citizen.progress = 0
@@ -78,32 +91,48 @@ static func move(sim: Variant) -> void:
 			citizen.progress = 0
 
 static func daily(sim: Variant) -> void:
+	for item: Dictionary in sim.state.buildings:
+		var d: Dictionary = sim.definitions.buildings[item.type]
+		if not d.has("service"): continue
+		var upkeep: int = d.get("upkeep",0)
+		item.funded = item.active and item.connected and (d.jobs == 0 or item.assigned > 0) and sim.state.coins >= upkeep
+		if item.funded: sim.state.coins -= upkeep
+		item.block = "" if item.funded else ("Sin presupuesto de mantenimiento" if sim.state.coins < upkeep else "Necesita camino y personal")
 	refresh_services(sim)
 	var count: int = sim.state.citizens.size()
 	var day: int = sim.state.tick / sim.definitions.balance.ticks_per_day
 	for offset: int in range(count):
 		var citizen: Dictionary = sim.state.citizens[(offset + day) % count]
+		var home: Dictionary = sim.building(citizen.home)
 		citizen.fed = false
-		if sim.building(citizen.home).connected:
-			for resource: String in ["grain", "fish"]:
+		if home.connected:
+			for resource: String in ["bread", "grain", "fish"]:
 				if sim.state.inventory[resource] > 0:
 					sim.state.inventory[resource] -= 1
 					citizen.fed = true
 					break
-		var target: int = 50 * int(citizen.fed) + 30 * int(citizen.water) + 20 * int(citizen.job != 0)
+		var target: int = 45 * int(citizen.fed) + 25 * int(citizen.water) + 10 * int(citizen.job != 0)
+		for service: String in ["market","health","faith","safety","education"]:
+			target += 4 * int(home.services.get(service,false))
 		citizen.satisfaction = clampi(citizen.satisfaction + clampi(target - citizen.satisfaction, -10, 5), 0, 100)
-		if citizen.fed and citizen.water: sim.state.coins += 1
+		if citizen.fed and citizen.water: sim.state.coins += home.level
 	for home: Dictionary in sim.state.buildings:
 		if home.type != "house": continue
-		var cared: bool = true
+		var cared: bool = home.water and home.services.get("market",false) and home.services.get("health",false) and home.services.get("faith",false)
 		var occupants: int = 0
-		var happiness: int = 0
 		for citizen: Dictionary in sim.state.citizens:
 			if citizen.home == home.id:
 				occupants += 1
-				happiness += citizen.satisfaction
-				if not citizen.fed or not citizen.water: cared = false
-		home.care_days = mini(3, home.care_days + 1) if cared and occupants > 0 and happiness >= 80 * occupants else 0
+				if not citizen.fed: cared = false
+		home.care_days = mini(3,home.care_days+1) if cared and occupants > 0 else 0
+		home.level = 2 if home.care_days >= 3 else 1
+		if home.level == 2 and home.services.get("safety",false) and home.services.get("education",false):
+			var luxury: bool = true
+			for resource: String in ["pottery","cloth","wine"]:
+				if sim.state.inventory[resource] < 1: luxury = false
+			if luxury:
+				for resource: String in ["pottery","cloth","wine"]: sim.state.inventory[resource] -= 1
+				home.level = 3
 	if day % sim.definitions.balance.immigration_days == 0:
 		sim.state.immigration_checks += 1
 		immigrate(sim)
@@ -115,7 +144,7 @@ static func immigrate(sim: Variant) -> void:
 	for citizen: Dictionary in sim.state.citizens: happiness += citizen.satisfaction
 	if happiness < sim.state.citizens.size() * sim.definitions.balance.satisfaction_min: return
 	var newcomers: int = sim.definitions.balance.immigration_count
-	if sim.state.inventory.grain + sim.state.inventory.fish < (sim.state.citizens.size() + newcomers) * sim.definitions.balance.reserve_days: return
+	if preload("res://sim/systems/economy.gd").food(sim) < (sim.state.citizens.size() + newcomers) * sim.definitions.balance.reserve_days: return
 	for item: Dictionary in sim.state.buildings:
 		if not item.connected: continue
 		if item.active: vacancies += sim.definitions.buildings[item.type].jobs - item.assigned

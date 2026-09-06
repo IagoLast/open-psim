@@ -1,1 +1,36 @@
-{"version":1,"map_size":40,"ticks_per_day":300,"ticks_per_second":5,"departure":25,"return":250,"move_ticks":2,"inventory_capacity":500,"water_distance":10,"reserve_days":2,"immigration_days":2,"immigration_count":2,"satisfaction_min":60,"coins":350,"inventory":{"wood":60,"grain":32,"fish":16,"salt":0,"salted_fish":0},"road_cost":1,"labor_interval":10}
+{
+  "version": 2,
+  "map_size": 128,
+  "ticks_per_day": 300,
+  "ticks_per_second": 5,
+  "departure": 25,
+  "return": 250,
+  "move_ticks": 2,
+  "inventory_capacity": 1200,
+  "water_distance": 16,
+  "reserve_days": 2,
+  "immigration_days": 2,
+  "immigration_count": 2,
+  "satisfaction_min": 60,
+  "coins": 1000,
+  "inventory": {
+    "wood": 140,
+    "grain": 80,
+    "fish": 32,
+    "salt": 0,
+    "salted_fish": 0,
+    "stone": 24,
+    "clay": 0,
+    "iron": 0,
+    "tools": 0,
+    "flour": 0,
+    "bread": 0,
+    "grapes": 0,
+    "wine": 0,
+    "pottery": 0,
+    "wool": 0,
+    "cloth": 0
+  },
+  "road_cost": 1,
+  "labor_interval": 10
+}

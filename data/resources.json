@@ -2,26 +2,97 @@
   "wood": {
     "label": "Madera",
     "buy": 4,
-    "sell": 2
+    "sell": 2,
+    "color": "#9b754e"
   },
   "grain": {
     "label": "Cereal",
     "buy": 3,
-    "sell": 1
+    "sell": 1,
+    "color": "#d6b95e"
   },
   "fish": {
     "label": "Sardina",
     "buy": -1,
-    "sell": 1
+    "sell": 1,
+    "color": "#74afbd"
   },
   "salt": {
     "label": "Sal",
     "buy": 2,
-    "sell": 1
+    "sell": 1,
+    "color": "#e8e3ce"
   },
   "salted_fish": {
     "label": "Sardina salada",
     "buy": -1,
-    "sell": 5
+    "sell": 5,
+    "color": "#bd9a75"
+  },
+  "stone": {
+    "label": "Granito",
+    "buy": 5,
+    "sell": 2,
+    "color": "#96999e"
+  },
+  "clay": {
+    "label": "Arcilla",
+    "buy": 3,
+    "sell": 1,
+    "color": "#c17b57"
+  },
+  "iron": {
+    "label": "Hierro",
+    "buy": 7,
+    "sell": 3,
+    "color": "#677787"
+  },
+  "tools": {
+    "label": "Herramientas",
+    "buy": 14,
+    "sell": 8,
+    "color": "#61757c"
+  },
+  "flour": {
+    "label": "Harina",
+    "buy": 5,
+    "sell": 2,
+    "color": "#e4d5a0"
+  },
+  "bread": {
+    "label": "Pan",
+    "buy": 6,
+    "sell": 3,
+    "color": "#cb944c"
+  },
+  "grapes": {
+    "label": "Uva",
+    "buy": 4,
+    "sell": 2,
+    "color": "#856694"
+  },
+  "wine": {
+    "label": "Vino",
+    "buy": 12,
+    "sell": 7,
+    "color": "#9b5264"
+  },
+  "pottery": {
+    "label": "Cerámica",
+    "buy": 9,
+    "sell": 5,
+    "color": "#be7955"
+  },
+  "wool": {
+    "label": "Lana",
+    "buy": 5,
+    "sell": 2,
+    "color": "#e0d6c0"
+  },
+  "cloth": {
+    "label": "Paños",
+    "buy": 12,
+    "sell": 7,
+    "color": "#6c9f9c"
   }
 }

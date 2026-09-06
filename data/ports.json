@@ -1,0 +1,61 @@
+{
+  "porto": {
+    "label": "Porto",
+    "days": 2,
+    "fee": 8,
+    "capacity": 60,
+    "buys": {
+      "wood": 3,
+      "salted_fish": 6,
+      "wine": 8,
+      "cloth": 8,
+      "pottery": 6
+    },
+    "sells": {
+      "salt": 2,
+      "grain": 3,
+      "wood": 5,
+      "stone": 6,
+      "wool": 5
+    }
+  },
+  "lisbon": {
+    "label": "Lisboa",
+    "days": 3,
+    "fee": 14,
+    "capacity": 90,
+    "buys": {
+      "salted_fish": 8,
+      "wine": 10,
+      "tools": 10,
+      "cloth": 9
+    },
+    "sells": {
+      "salt": 1,
+      "iron": 6,
+      "clay": 3,
+      "grain": 3,
+      "tools": 15
+    }
+  },
+  "bordeaux": {
+    "label": "Burdeos",
+    "days": 4,
+    "fee": 20,
+    "capacity": 120,
+    "buys": {
+      "salted_fish": 10,
+      "cloth": 12,
+      "tools": 12,
+      "pottery": 8,
+      "wood": 4
+    },
+    "sells": {
+      "wine": 8,
+      "cloth": 10,
+      "grain": 2,
+      "stone": 5,
+      "wool": 4
+    }
+  }
+}

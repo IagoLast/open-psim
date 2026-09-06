@@ -1,6 +1,6 @@
 extends RefCounted
 
-static func neighbors(cell: int, width: int = 40) -> Array[int]:
+static func neighbors(cell: int, width: int = 128) -> Array[int]:
 	var result: Array[int] = []
 	if cell >= width: result.append(cell - width)
 	if cell % width > 0: result.append(cell - 1)
@@ -8,21 +8,21 @@ static func neighbors(cell: int, width: int = 40) -> Array[int]:
 	if cell < width * (width - 1): result.append(cell + width)
 	return result
 
-static func distances(start: int, roads: Dictionary) -> Dictionary:
-	if start < 0: return {}
+static func distances(start: int, roads: Dictionary, width: int = 128) -> Dictionary:
+	if start < 0 or not roads.has(start): return {}
 	var found: Dictionary = {start: 0}
 	var queue: Array[int] = [start]
 	var index: int = 0
 	while index < queue.size():
 		var cell: int = queue[index]
 		index += 1
-		for next: int in neighbors(cell):
+		for next: int in neighbors(cell, width):
 			if roads.has(next) and not found.has(next):
 				found[next] = found[cell] + 1
 				queue.append(next)
 	return found
 
-static func route(start: int, goal: int, roads: Dictionary) -> Array:
+static func route(start: int, goal: int, roads: Dictionary, width: int = 128) -> Array:
 	if start == goal: return []
 	if start < 0 or goal < 0: return []
 	var previous: Dictionary = {start: -1}
@@ -31,7 +31,7 @@ static func route(start: int, goal: int, roads: Dictionary) -> Array:
 	while index < queue.size():
 		var cell: int = queue[index]
 		index += 1
-		for next: int in neighbors(cell):
+		for next: int in neighbors(cell, width):
 			if not roads.has(next) or previous.has(next): continue
 			previous[next] = cell
 			if next == goal:

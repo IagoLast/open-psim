@@ -8,13 +8,19 @@
   {
     "title": "Salazón y comercio",
     "classification": "Documentado / adaptación jugable",
-    "text": "La vinculación local entre salazón y exportación está documentada en la fuente municipal. Precios, recetas, capacidad y comercio instantáneo son valores ficticios de diseño.",
+    "text": "La vinculación local entre salazón y exportación está documentada en la fuente municipal. Precios, recetas, cupos, destinos y duración de las travesías son valores de diseño.",
     "source": "https://www.visit-pontevedra.com/que-ver/otros-lugares-de-interes/barrio-de-la-moureira/"
   },
   {
-    "title": "Qué simplifica esta V0",
+    "title": "Qué simplifica esta versión",
     "classification": "Adaptación jugable",
-    "text": "Todos los vecinos son adultos aptos para trabajar. No hay nacimientos, muertes, salarios ni transporte físico. Distribución centralizada: el transporte de mercancías no se simula todavía. Bosque y caladero no se agotan. Cereal y sardina se comen directamente. La reserva de dos días protege comida frente a la salazón.",
+    "text": "Todos los vecinos son adultos aptos para trabajar. El reparto terrestre usa un almacén común; las travesías marítimas sí trasladan cargas con plazo de entrega. No hay nacimientos, muertes ni salarios individuales. Bosques, caladeros y yacimientos no se agotan. Los servicios públicos y las necesidades de vivienda son una adaptación jugable.",
     "source": ""
+  },
+  {
+    "title": "Una provincia por explorar",
+    "classification": "Geografía estilizada",
+    "text": "El mapa toma como referencia las rías de Arousa, Pontevedra y Vigo, Ons, Cíes y las zonas de O Salnés, O Morrazo, Baixo Miño y el interior. Escala, contornos y yacimientos están adaptados para jugar.",
+    "source": "https://www.turismoriasbaixas.com/index.php/es/descubre/rias-baixas-al-natural/rios-y-rias/las-rias"
   }
 ]

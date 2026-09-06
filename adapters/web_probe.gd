@@ -11,8 +11,8 @@ func publish(main: Node) -> void:
 	var controls: Array = []
 	_controls(main,controls)
 	var cells: Array = []
-	for cell: int in range(1600):
-		var point: Vector2 = main.world.camera.unproject_position(Vector3(cell%40+0.5,0,cell/40+0.5))
+	for cell: int in range(main.snapshot.terrain.size()):
+		var point: Vector2 = main.world.camera.unproject_position(Vector3(cell%main.sim.width()+0.5,0,cell/main.sim.width()+0.5))
 		cells.append([point.x,point.y])
 	var data: Dictionary = {"state":main.snapshot,"controls":controls,"cells":cells,"fps":Engine.get_frames_per_second(),"tick_usec":main.runner.tick_usec,"speed":main.runner.speed,"message":main.hud.message_label.text}
 	JavaScriptBridge.eval("window.psimProbe = " + JSON.stringify(data) + ";",true)

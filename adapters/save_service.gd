@@ -1,6 +1,6 @@
 extends RefCounted
 const Definitions = preload("res://adapters/definitions.gd")
-const SAVE_PATH: String = "user://pontevedra.json"
+const SAVE_PATH: String = "user://pontevedra-v2.json"
 
 static func save_game(sim: Variant) -> String:
 	var file := FileAccess.open(SAVE_PATH + ".tmp", FileAccess.WRITE)
