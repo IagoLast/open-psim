@@ -1,6 +1,8 @@
 extends RefCounted
+const Map = preload("res://sim/world_map.gd")
 
 static func check(data: Dictionary, definitions: Dictionary) -> String:
+	if data.get("map_id") != Map.ID: return "Guardado de otro mapa; inicia una partida en la ría de Pontevedra"
 	if not data.get("topology") is int or data.topology < 1: return "Topología inválida"
 	var template: Dictionary = {"schema":TYPE_INT,"balance_version":TYPE_INT,"seed":TYPE_INT,"rng_state":TYPE_STRING,"tick":TYPE_INT,"sequence":TYPE_INT,"next_building":TYPE_INT,"next_citizen":TYPE_INT,"coins":TYPE_INT,"inventory":TYPE_DICTIONARY,"terrain":TYPE_ARRAY,"roads":TYPE_ARRAY,"buildings":TYPE_ARRAY,"citizens":TYPE_ARRAY,"exported":TYPE_INT,"immigration_checks":TYPE_INT,"milestones":TYPE_ARRAY,"alerts":TYPE_ARRAY}
 	for key: String in template:
@@ -41,6 +43,7 @@ static func check(data: Dictionary, definitions: Dictionary) -> String:
 		for z: int in range(item.z, item.z + size):
 			for x: int in range(item.x, item.x + size):
 				var cell: int = z * 128 + x
+				if Map.BURGO_BRIDGE.has_point(Vector2i(x,z)): return "Edificio sobre el puente"
 				if occupied.has(cell) or roads.has(cell) or data.terrain[cell] == "water": return "Solapamiento inválido"
 				occupied[cell] = true
 		buildings[item.id] = item

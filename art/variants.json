@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "seed": 1530,
+  "count": 2,
+  "families": {
+    "tree_oak": {
+      "height": 0.07,
+      "lean": 0.1,
+      "trunk": 0.13,
+      "spread": 0.11,
+      "crown": 0.12,
+      "facets": 0.04
+    },
+    "tree_cypress": {
+      "height": 0.07,
+      "lean": 0.06,
+      "trunk": 0.12,
+      "spread": 0.035,
+      "crown": 0.1,
+      "facets": 0.03
+    },
+    "tree_pine": {
+      "height": 0.08,
+      "lean": 0.1,
+      "trunk": 0.13,
+      "spread": 0.12,
+      "crown": 0.12,
+      "facets": 0.04
+    },
+    "rock_cluster": {
+      "spread": 0.045,
+      "rock": 0.14,
+      "moss": 0.3
+    },
+    "gorse": {
+      "height": 0.08,
+      "spread": 0.05,
+      "crown": 0.13,
+      "facets": 0.04
+    },
+    "bridge_stone": {
+      "stone": 0.45,
+      "moss": 0.2
+    }
+  },
+  "house_details": {
+    "house": {
+      "stone": 0.25
+    },
+    "house_cottage": {
+      "stone": 0.25
+    },
+    "house_tall": {
+      "stone": 0.25
+    }
+  }
+}

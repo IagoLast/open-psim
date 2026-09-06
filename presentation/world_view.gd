@@ -1,8 +1,10 @@
 extends Node3D
+const Map = preload("res://sim/world_map.gd")
 const Assets = preload("res://presentation/asset_factory.gd")
+const Landscape = preload("res://presentation/landscape.gd")
 var camera: Camera3D
-var focus: Vector3 = Vector3(70,0,54)
-var map_size: int = 128
+var focus: Vector3 = Map.START_FOCUS
+var map_size: int = Map.SIZE
 var ships: Dictionary = {}
 var landmarks: Array[Label3D] = []
 var buildings: Dictionary = {}
@@ -14,7 +16,7 @@ var terrain_node: MeshInstance3D
 var topology: int = -1
 var water_view: bool = false
 var selected_cell: int = -1
-var trees: Dictionary = {}
+var landscape: Node3D
 var building_cells: Dictionary = {}
 var hovered_building: int = 0
 
@@ -32,6 +34,7 @@ func _process(_delta: float) -> void:
 		buildings[hovered_building].get_node("Status").show()
 
 func setup(snapshot: Dictionary) -> void:
+	map_size = snapshot.map_size
 	camera = Camera3D.new()
 	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
 	camera.size = 30
@@ -41,57 +44,35 @@ func setup(snapshot: Dictionary) -> void:
 	update_camera()
 	var light := DirectionalLight3D.new()
 	light.rotation_degrees = Vector3(-50,-35,0)
-	light.light_color = Color("#fffaf3")
-	light.light_energy = 0.32
+	light.light_color = Color("#f4f3ef")
+	light.light_energy = 0.30
 	light.shadow_enabled = true
 	light.shadow_opacity = 0.32
 	light.shadow_blur = 2.0
 	light.directional_shadow_max_distance = 70
 	add_child(light)
-	# Broad studio fill keeps the unlit facade warm and readable in GL Compatibility.
+	# Neutral, restrained fill preserves the photo's warm stone without bleaching it.
 	var fill := DirectionalLight3D.new()
 	fill.rotation_degrees = Vector3(-35,145,0)
-	fill.light_color = Color("#fff5e5")
-	fill.light_energy = 0.22
+	fill.light_color = Color("#e4e2dc")
+	fill.light_energy = 0.12
 	add_child(fill)
 	var environment := WorldEnvironment.new()
 	var settings := Environment.new()
 	settings.background_mode = Environment.BG_COLOR
-	settings.background_color = Color("#d9d4b8")
+	settings.background_color = Color("#d7d3c4")
 	settings.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	settings.ambient_light_color = Color("#f0ece2")
-	settings.ambient_light_energy = 0.55
+	settings.ambient_light_color = Color("#e8e7e0")
+	settings.ambient_light_energy = 0.50
 	environment.environment = settings
 	add_child(environment)
-	terrain_node = MeshInstance3D.new()
-	var surface := SurfaceTool.new()
-	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var colors: Dictionary = {"water":Color("#4fabb4"),"land":Color("#b9bd8c"),"fertile":Color("#a8b578"),"forest":Color("#929f70"),"rock":Color("#96999e"),"clay":Color("#c17b57"),"ore":Color("#677787")}
-	for cell: int in range(snapshot.terrain.size()):
-		var x: int = cell % map_size
-		var z: int = cell / map_size
-		var color: Color = colors[snapshot.terrain[cell]]
-		color = color.lightened(((x*13+z*7)%5)*0.004)
-		for offset: Vector3 in [Vector3(0,0,0),Vector3(1,0,1),Vector3(0,0,1),Vector3(0,0,0),Vector3(1,0,0),Vector3(1,0,1)]:
-			surface.set_color(color.srgb_to_linear())
-			surface.set_normal(Vector3.UP)
-			surface.add_vertex(Vector3(x,-0.02,z)+offset)
-		if snapshot.terrain[cell] == "forest" and (x*7+z*3)%13 == 0:
-			var tree_scale: float = 0.82 + (cell % 5) * 0.085
-			var tree: Node3D = Assets.scenery("tree_cypress" if cell % 4 == 0 else "tree_oak", float(cell % 7) * 0.8, tree_scale)
-			if tree != null:
-				tree.position = Vector3(x + 0.5, 0.0, z + 0.5)
-				add_child(tree)
-				trees[cell] = tree
-	terrain_node.mesh = surface.commit()
-	var mat := StandardMaterial3D.new()
-	mat.vertex_color_use_as_albedo = true
-	mat.cull_mode = BaseMaterial3D.CULL_BACK
-	mat.roughness = 1.0
-	terrain_node.material_override = mat
-	add_child(terrain_node)
-	Assets.box(self,Vector3(map_size,0.5,map_size),Vector3(map_size/2.0,-0.31,map_size/2.0),Color("#9b9473"))
-	for landmark: Dictionary in preload("res://sim/world_map.gd").LANDMARKS:
+	landscape = Landscape.new()
+	landscape.name = "Landscape"
+	add_child(landscape)
+	landscape.setup(snapshot)
+	terrain_node = landscape.ground
+	Assets.box(self,Vector3(map_size,0.5,map_size),Vector3(map_size/2.0,-1.65,map_size/2.0),Color("#9b9473"))
+	for landmark: Dictionary in Map.LANDMARKS:
 		var title: Label3D = Assets.label(self,landmark.label,Vector3(landmark.x,0.3,landmark.z),32)
 		landmarks.append(title)
 		title.visible = false
@@ -107,6 +88,7 @@ func setup(snapshot: Dictionary) -> void:
 func update_camera() -> void:
 	camera.position = focus + Vector3(120,120,120)
 	camera.look_at(focus)
+	if landscape != null: landscape.set_overview(camera.size >= 65)
 	for title: Label3D in landmarks:
 		title.visible = camera.size >= 65
 		title.pixel_size = camera.size*0.0006
@@ -130,13 +112,27 @@ func cell_at(screen: Vector2) -> int:
 	return int(floor(point.z))*map_size + int(floor(point.x))
 
 func sync(snapshot: Dictionary, definitions: Dictionary) -> void:
+	if landscape.world_seed != snapshot.seed:
+		landscape.free()
+		landscape = Landscape.new()
+		landscape.name = "Landscape"
+		add_child(landscape)
+		landscape.setup(snapshot)
+		terrain_node = landscape.ground
+		landscape.set_overview(camera.size >= 65)
+		for model: Node3D in buildings.values(): model.free()
+		buildings.clear()
+		topology = -1
 	if snapshot.topology != topology:
 		topology = snapshot.topology
 		building_cells.clear()
 		for child: Node in road_nodes.get_children(): child.free()
 		for cell: int in snapshot.roads:
+			# The Blender bridge already supplies paving at the walking plane.
+			if Map.BURGO_BRIDGE.has_point(Vector2i(cell%map_size,cell/map_size)): continue
 			var road: Node3D = Assets.road()
 			if road != null:
+				road.rotation.y = posmod(cell*13+int(cell/map_size)*7,4)*PI*0.5
 				road.position = Vector3(cell%map_size+0.5,0.0,cell/map_size+0.5)
 				road_nodes.add_child(road)
 		var existing: Array = []
@@ -146,7 +142,7 @@ func sync(snapshot: Dictionary, definitions: Dictionary) -> void:
 			for dz: int in range(footprint):
 				for dx: int in range(footprint): building_cells[(item.z + dz) * map_size + item.x + dx] = item.id
 			if not buildings.has(item.id):
-				var model: Node3D = Assets.building(item.type,definitions.buildings[item.type].size,item.id,definitions.buildings[item.type].label)
+				var model: Node3D = Assets.building(item.type,definitions.buildings[item.type].size,item.id,definitions.buildings[item.type].label,snapshot.seed,"%d:%d" % [item.x,item.z])
 				model.position = Vector3(item.x,0,item.z)
 				add_child(model)
 				buildings[item.id] = model
@@ -154,8 +150,7 @@ func sync(snapshot: Dictionary, definitions: Dictionary) -> void:
 			if not existing.has(id):
 				buildings[id].free()
 				buildings.erase(id)
-		for cell: int in trees:
-			trees[cell].visible = not building_cells.has(cell) and not snapshot.roads.has(cell)
+		landscape.sync_occupation(building_cells,snapshot.roads)
 		# Re-evaluate hover after construction, demolition, or loading.
 		if buildings.has(hovered_building):
 			buildings[hovered_building].get_node("Title").visible = buildings[hovered_building].get_meta("placeholder",false)
@@ -198,8 +193,8 @@ func animate(snapshot: Dictionary, fraction: float, moving_time: float) -> void:
 		var travel: float = (phase*2 if phase < 0.5 else (1-phase)*2)*(voyage.path.size()-1)
 		var cell: int = voyage.path[int(travel)]
 		var next: int = voyage.path[mini(int(travel)+1,voyage.path.size()-1)]
-		var from: Vector3 = Vector3(cell%map_size+0.5,0,cell/map_size+0.5)
-		var to: Vector3 = Vector3(next%map_size+0.5,0,next/map_size+0.5)
+		var from: Vector3 = Vector3(cell%map_size+0.5,Landscape.WATER_LEVEL,cell/map_size+0.5)
+		var to: Vector3 = Vector3(next%map_size+0.5,Landscape.WATER_LEVEL,next/map_size+0.5)
 		ships[voyage.id].position = from.lerp(to,fmod(travel,1.0))
 		if cell != next: ships[voyage.id].rotation.y = atan2(to.x-from.x,to.z-from.z)+(PI if phase >= 0.5 else 0)
 

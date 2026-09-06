@@ -5,14 +5,19 @@ var supplied_texture: Texture2D
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	resized.connect(queue_redraw)
+	set_kind(kind)
+
+func set_kind(value: String) -> void:
+	kind = value
+	supplied_texture = null
 	var path: String = "res://assets/ui/%s.png" % kind
+	if not ResourceLoader.exists(path): path = "res://assets/ui/resources/%s.svg" % kind
 	if not ResourceLoader.exists(path):
-		resized.connect(queue_redraw)
 		queue_redraw()
 		return
 	supplied_texture = load(path) as Texture2D
 	if supplied_texture == null: push_error("Ilustración Blender inválida: " + path)
-	resized.connect(queue_redraw)
 	queue_redraw()
 
 func _draw() -> void:

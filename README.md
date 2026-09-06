@@ -5,9 +5,11 @@ producción, abastecimiento y servicios urbanos con comercio marítimo.
 
 La primera versión está conservada en el commit `dc5834d`. Esta ampliación incluye:
 
-- **Provincia de 128×128**: 16.384 casillas, 10,24 veces la superficie inicial.
-  Atlántico al oeste, tres rías, Ons y Cíes, O Salnés, O Morrazo, Baixo Miño
-  e interior con bosques, tierras fértiles, granito, arcilla y hierro.
+- **Ría interior de 128×128**: las 16.384 casillas se concentran en el tramo
+  Pontevedra–Combarro–Marín. Dos orillas amplias para construir, el Lérez y
+  la isla de Tambo; Poio, Campelo, Lourido y Lourizán sirven de referencia.
+  Bosques, tierras fértiles, granito, arcilla y hierro abastecen la villa.
+  El paso del Burgo permite extender caminos a la orilla de Combarro.
 - **16 recursos y 25 tipos de edificios**: cereal → harina → pan;
   sardina + sal → salazón; uva → vino; arcilla + madera → cerámica;
   hierro + madera → herramientas; lana → paños.
@@ -20,9 +22,9 @@ La primera versión está conservada en el commit `dc5834d`. Esta ampliación in
 - **Edificios nuevos como bloques con etiquetas**. Se conservan los modelos
   originales de viviendas, granjas, pesca y salazón.
 
-El mapa es una interpretación jugable de la provincia, con contornos y escala
+El mapa es una interpretación jugable de la ría interior, con contornos y escala
 simplificados; los yacimientos, precios y plazos son de diseño. Referencia geográfica:
-[las rías, Turismo Rías Baixas](https://www.turismoriasbaixas.com/index.php/es/descubre/rias-baixas-al-natural/rios-y-rias/las-rias).
+[ría de Pontevedra, Turismo Rías Baixas](https://www.turismoriasbaixas.com/es/search/ria-de-pontevedra).
 
 ```sh
 .tools/Godot.app/Contents/MacOS/Godot --path .
@@ -36,7 +38,7 @@ empleos libres y una reserva de dos días de comida atraen vecinos.
 
 **Construir** abre el catálogo; **Recursos** muestra existencias y cadenas;
 **Comercio** configura y sigue los barcos; **Ciudad** muestra los objetivos.
-**Mapa** permite saltar por la provincia e **Inicio** vuelve al almacén.
+**Mapa** permite recorrer las dos orillas e **Inicio** vuelve al almacén.
 WASD/flechas desplazan la cámara, la rueda controla el zoom, Espacio pausa
 y clic derecho/Escape cancela la herramienta. Arrastra para trazar caminos.
 
@@ -47,8 +49,9 @@ diaria de cerámica, paños y vino permiten el nivel mercantil. Los niveles mayo
 pagan más impuestos. En el mar, una carga espera si el muelle pierde su camino;
 reconectarlo permite descargar. Detener una ruta automática conserva el viaje en curso.
 
-Los guardados de esta ampliación usan `user://pontevedra-v2.json`, independientes
-del archivo de la primera versión. Guardan también cargas, cupos y rutas en curso.
+Los guardados de este mapa usan `user://pontevedra-ria-v1.json`. Los archivos
+anteriores de la provincia se conservan por separado; el cambio de geografía
+requiere una nueva partida. Guardan también cargas, cupos y rutas en curso.
 Bosques, yacimientos y caladeros no se agotan; el reparto terrestre se centraliza
 en el almacén. La prioridad de empleo afecta a nuevas asignaciones.
 

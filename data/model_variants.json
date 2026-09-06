@@ -1,0 +1,197 @@
+{
+  "schema": 1,
+  "selection_version": 1,
+  "families": {
+    "tree_oak": [
+      "tree_oak",
+      "tree_oak_v1530_01",
+      "tree_oak_v1530_02"
+    ],
+    "tree_cypress": [
+      "tree_cypress",
+      "tree_cypress_v1530_01",
+      "tree_cypress_v1530_02"
+    ],
+    "tree_pine": [
+      "tree_pine",
+      "tree_pine_v1530_01",
+      "tree_pine_v1530_02"
+    ],
+    "rock_cluster": [
+      "rock_cluster",
+      "rock_cluster_v1530_01",
+      "rock_cluster_v1530_02"
+    ],
+    "gorse": [
+      "gorse",
+      "gorse_v1530_01",
+      "gorse_v1530_02"
+    ],
+    "bridge_stone": [
+      "bridge_stone",
+      "bridge_stone_v1530_01",
+      "bridge_stone_v1530_02"
+    ],
+    "house": [
+      "house"
+    ],
+    "house_cottage": [
+      "house_cottage"
+    ],
+    "house_tall": [
+      "house_tall"
+    ]
+  },
+  "models": {
+    "tree_oak_v1530_01": {
+      "family": "tree_oak",
+      "seed": 1530,
+      "index": 1,
+      "parameters": {
+        "height": 0.07,
+        "lean": 0.1,
+        "trunk": 0.13,
+        "spread": 0.11,
+        "crown": 0.12,
+        "facets": 0.04
+      },
+      "geometry_digest": "bcf34bd6ccb9d0a619612a6974754391f9ce3fb3d8035f75526b226bf6545e1c"
+    },
+    "tree_oak_v1530_02": {
+      "family": "tree_oak",
+      "seed": 1530,
+      "index": 2,
+      "parameters": {
+        "height": 0.07,
+        "lean": 0.1,
+        "trunk": 0.13,
+        "spread": 0.11,
+        "crown": 0.12,
+        "facets": 0.04
+      },
+      "geometry_digest": "9886ea8183562f580fbac2026e1ac7b5366f299485c192b9dbc9414b931f9bc6"
+    },
+    "tree_cypress_v1530_01": {
+      "family": "tree_cypress",
+      "seed": 1530,
+      "index": 1,
+      "parameters": {
+        "height": 0.07,
+        "lean": 0.06,
+        "trunk": 0.12,
+        "spread": 0.035,
+        "crown": 0.1,
+        "facets": 0.03
+      },
+      "geometry_digest": "179afb12fea6ffb5aad5d614973a686b63529b0ada97f38632a415de83cafd63"
+    },
+    "tree_cypress_v1530_02": {
+      "family": "tree_cypress",
+      "seed": 1530,
+      "index": 2,
+      "parameters": {
+        "height": 0.07,
+        "lean": 0.06,
+        "trunk": 0.12,
+        "spread": 0.035,
+        "crown": 0.1,
+        "facets": 0.03
+      },
+      "geometry_digest": "cce91fffc3b2efb103fb2273fe1ef2d9cc88b5bcfbb81febe88ee4eb0a6499f6"
+    },
+    "tree_pine_v1530_01": {
+      "family": "tree_pine",
+      "seed": 1530,
+      "index": 1,
+      "parameters": {
+        "height": 0.08,
+        "lean": 0.1,
+        "trunk": 0.13,
+        "spread": 0.12,
+        "crown": 0.12,
+        "facets": 0.04
+      },
+      "geometry_digest": "8eee299b96b4d5c20f895ad71f91e43e4f487fb267dde24df93af8c9d8774bd5"
+    },
+    "tree_pine_v1530_02": {
+      "family": "tree_pine",
+      "seed": 1530,
+      "index": 2,
+      "parameters": {
+        "height": 0.08,
+        "lean": 0.1,
+        "trunk": 0.13,
+        "spread": 0.12,
+        "crown": 0.12,
+        "facets": 0.04
+      },
+      "geometry_digest": "16ddd2614ab104fac6144c516f0f7c0b935910ba3038ae82d1fd1c8fc5268c08"
+    },
+    "rock_cluster_v1530_01": {
+      "family": "rock_cluster",
+      "seed": 1530,
+      "index": 1,
+      "parameters": {
+        "spread": 0.045,
+        "rock": 0.14,
+        "moss": 0.3
+      },
+      "geometry_digest": "51536072803f14a8099ba65d5005e3d1e7686d35fc2cb87355accc8b02b53173"
+    },
+    "rock_cluster_v1530_02": {
+      "family": "rock_cluster",
+      "seed": 1530,
+      "index": 2,
+      "parameters": {
+        "spread": 0.045,
+        "rock": 0.14,
+        "moss": 0.3
+      },
+      "geometry_digest": "c9999c14c74e76430b0057d769ff889699cc73a448dcaf690e797a1220c5d4cc"
+    },
+    "gorse_v1530_01": {
+      "family": "gorse",
+      "seed": 1530,
+      "index": 1,
+      "parameters": {
+        "height": 0.08,
+        "spread": 0.05,
+        "crown": 0.13,
+        "facets": 0.04
+      },
+      "geometry_digest": "32a0609971938bbb28d0a586516aa7558caf8eabf0418986efe161542cc83074"
+    },
+    "gorse_v1530_02": {
+      "family": "gorse",
+      "seed": 1530,
+      "index": 2,
+      "parameters": {
+        "height": 0.08,
+        "spread": 0.05,
+        "crown": 0.13,
+        "facets": 0.04
+      },
+      "geometry_digest": "da546ef911e6c159613347a0b91605e1a34ad543719f8dfe922556cd1606f1f2"
+    },
+    "bridge_stone_v1530_01": {
+      "family": "bridge_stone",
+      "seed": 1530,
+      "index": 1,
+      "parameters": {
+        "stone": 0.45,
+        "moss": 0.2
+      },
+      "geometry_digest": "adeb8b865141d70204eca1e859aae745ec93361eeea97f3f2568d2fa9fb6a27e"
+    },
+    "bridge_stone_v1530_02": {
+      "family": "bridge_stone",
+      "seed": 1530,
+      "index": 2,
+      "parameters": {
+        "stone": 0.45,
+        "moss": 0.2
+      },
+      "geometry_digest": "a36bc6e18249c0529af7d03bd1f7e41553efed80a2dcf1a48c00f82e7b3de237"
+    }
+  }
+}

@@ -12,6 +12,7 @@ import bpy
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import reset, box, cylinder, beam, render, mesh, mat
 from buildings import roof
+from variation import CANONICAL
 
 
 def faceted_crown(name, rings, sides, material, phase=0, variation=.075):
@@ -88,24 +89,53 @@ def rowboat():
         paddle.rotation_euler.z = -sign*.61
 
 
-def tree_oak():
-    cylinder("Short angular oak trunk",(0,0,.40),.115,.80,"wood_light",6)
-    crown = faceted_crown("One broad faceted oak crown",
-                         [(.57,.21,0,0),(.92,.54,-.04,0),(1.43,.61,.03,.02),
-                          (1.86,.38,-.05,.03),(2.09,.045,-.11,0)],
-                         7,"leaf_olive",.15)
-    crown.data.materials.append(mat("leaf_sage"))
-    for p in crown.data.polygons:
-        if p.index in [3,9,12,15,21]:
-            p.material_index = 1
+def tree_oak(variation=CANONICAL):
+    v = variation
+    h = v.factor("height", "height")
+    lean = (v.offset("trunk.x", "lean"), v.offset("trunk.y", "lean"))
+    beam("Leaning oak trunk",(0,0,0),(.06+lean[0],.02+lean[1],1.26*h),
+         .12*v.factor("trunk.radius", "trunk"),"wood")
+    for i,(x,y,z,r) in enumerate([(-.36,.02,1.48,.53),(.34,.16,1.67,.57),
+                                 (.06,-.32,1.53,.49),(-.04,.02,2.02,.52)]):
+        x,y,z,r = v.lobe(f"oak.{i}",x,y,z,r)
+        if i < 3:
+            end = (x,y,z-.12) if v.parameters else [(-.44,.03,1.36),(.43,.18,1.57),(.08,-.35,1.40)][i]
+            beam("Visible fork",(.04+lean[0]*.55,.02+lean[1]*.55,.69*h),
+                 end,.062*v.factor(f"branch.{i}","trunk"),"wood_light")
+        crown = faceted_crown("Broad lobed oak canopy",
+            [(z-r*.65,r*.40,x,y),(z-r*.22,r,x-.025,y),
+             (z+r*.40,r*.84,x+.03,y),(z+r*.78,r*.26,x-.07,y)],
+            7,"leaf_olive" if i%2 else "green",i*.7,.10+v.offset(f"facets.{i}","facets"))
+        crown.data.materials.append(mat("leaf_sage"))
+        for p in crown.data.polygons:
+            if p.normal.z > .3 and p.index%3 == 0: p.material_index = 1
+    for i in range(5):
+        a = i*math.tau/5
+        beam("Exposed buttress root",(0,0,.18),(.25*math.cos(a),.25*math.sin(a),.025),.045,"wood")
 
 
-def tree_cypress():
-    cylinder("Cypress trunk",(0,0,.26),.08,.52,"wood_light",6)
-    faceted_crown("One slender cypress crown",
-                  [(.36,.19,0,0),(.60,.38,0,0),(1.16,.31,.015,0),
-                   (1.88,.16,0,0),(2.48,.012,0,0)],
-                  6,"leaf_forest",.16)
+def tree_cypress(variation=CANONICAL):
+    v = variation
+    h = v.factor("height", "height")
+    dx,dy = v.offset("trunk.x","lean"),v.offset("trunk.y","lean")
+    if v.parameters:
+        beam("Cypress trunk",(0,0,0),(dx,dy,.84*h),.085*v.factor("trunk.radius","trunk"),"wood_light")
+    else:
+        cylinder("Cypress trunk",(0,0,.42),.085,.84,"wood_light",7)
+    for i,(z,r,length) in enumerate([(.48,.37,1.20),(.95,.32,1.21),(1.52,.23,1.19)]):
+        x,y,z,r = v.lobe(f"cypress.{i}",dx,dy,z,r)
+        length *= h
+        if v.parameters:
+            for side in [-1,1]:
+                beam("Short cypress branch",(dx*.7,dy*.7,z*.75),
+                     (x+side*r*.60,y,z+.16),.025*v.factor(f"branch.{i}","trunk"),"wood_light")
+        crown = faceted_crown("Overlapping cypress foliage",
+            [(z,r*.6,x,y),(z+.16,r,x+.02,y),(z+length*.55,r*.61,x-.015,y),
+             (z+length,.012,x+.025,y)],7,"leaf_forest" if i!=1 else "green",i*.4,
+             .075+v.offset(f"facets.{i}","facets"))
+        crown.data.materials.append(mat("leaf_olive"))
+        for p in crown.data.polygons:
+            if p.index%7 == 3: p.material_index = 1
 
 
 def crate(x,y,z=.11,size=.43):
@@ -143,7 +173,7 @@ def barrel(x,y,z=.10,r=.18,h=.38):
 
 
 def warehouse():
-    box("Pale stone warehouse base",(0,0,.055),(3.08,2.70,.11),"cream",.04)
+    box("Weathered granite warehouse base",(0,0,.055),(3.08,2.70,.11),"stone",.04)
     # The reference's storehouse is an open timber bay under a slate roof.
     for i in range(6):
         box("Back horizontal plank",(-.31,.88,.29+i*.23),(1.91,.075,.215),"wood_light",.004)

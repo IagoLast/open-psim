@@ -1,16 +1,18 @@
 extends SceneTree
 ## Validate every Blender render consumed by the HUD, including tool buttons.
+const Variants = preload("res://presentation/model_variants.gd")
 const ICONS: Array[String] = [
 	"grain", "wood", "fish", "salt", "salted_fish", "coins", "population", "happiness",
 	"category_housing", "category_services", "category_food", "category_materials",
 	"select", "demolish"
 ]
 const BUILDINGS: Array[String] = ["house", "road", "well", "farm", "lumber", "fishery", "saltery"]
-const COLLECTION: Array[String] = ["house_cottage", "house_tall", "warehouse", "sailboat", "rowboat", "tree_oak", "tree_cypress", "citizen"]
+const COLLECTION: Array[String] = ["house_cottage", "house_tall", "warehouse", "sailboat", "rowboat", "tree_oak", "tree_cypress", "citizen", "tree_pine", "bridge_stone", "rock_cluster", "grass_clump", "wildflowers", "reeds", "gorse"]
 
 func _initialize() -> void:
 	var failures: int = 0
 	var names: Array[String] = ICONS + BUILDINGS + COLLECTION
+	for kind: String in Variants.catalog.models: names.append(kind)
 	for file_name: String in DirAccess.get_files_at("res://assets/ui"):
 		if file_name.get_extension() == "png" and file_name.get_basename() not in names:
 			printerr("UNLISTED ILLUSTRATION ", file_name)

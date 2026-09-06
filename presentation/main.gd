@@ -1,4 +1,5 @@
 extends Node3D
+const Map = preload("res://sim/world_map.gd")
 const Simulation = preload("res://sim/simulation.gd")
 const Definitions = preload("res://adapters/definitions.gd")
 const Save = preload("res://adapters/save_service.gd")
@@ -42,7 +43,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if snapshot.is_empty(): return
-	world.pan(delta)
+	if not is_instance_valid(hud.confirmation_overlay): world.pan(delta)
 	hud.minimap.focus = world.focus
 	hud.minimap.zoom = world.camera.size
 	var stepped: int = runner.advance(sim,delta)
@@ -92,11 +93,14 @@ func locate(id: int) -> void:
 	refresh()
 
 func _unhandled_input(event: InputEvent) -> void:
+	if is_instance_valid(hud.confirmation_overlay):
+		if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE: hud.close_confirmation()
+		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		match event.keycode:
 			KEY_ESCAPE:
 				_select_tool("select")
-				hud.help_panel.hide()
+				hud.close_panels()
 			KEY_SPACE:
 				runner.speed = 1 if runner.speed == 0 else 0
 				refresh()
@@ -132,7 +136,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		var order: Dictionary = {"type":"road","cells":cells} if tool == "road" else {"type":"build","kind":tool,"x":cell%sim.width(),"z":cell/sim.width()}
 		var checked: Dictionary = sim.validate_command(order)
 		world.show_preview(cells,checked.ok)
-		hud.message_label.text = "Coste: %d monedas · %d madera · Clic para construir" % [checked.coins,checked.wood] if checked.ok else checked.message
+		hud.show_build_cost(checked)
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
@@ -168,8 +172,8 @@ func select_at(screen: Vector2, cell: int) -> void:
 func action(name_value: String) -> void:
 	match name_value:
 		"overview":
-			world.focus = Vector3(64,0,64)
-			world.camera.size = 145
+			world.focus = Map.OVERVIEW_FOCUS
+			world.camera.size = Map.OVERVIEW_ZOOM
 			world.update_camera()
 		"save": hud.message_label.text = Save.save_game(sim)
 		"water":
@@ -177,15 +181,14 @@ func action(name_value: String) -> void:
 			world.refresh_overlay(snapshot,sim.definitions)
 		"debug": hud.debug_label.visible = not hud.debug_label.visible
 		"load","new":
-			var dialog := ConfirmationDialog.new()
-			dialog.theme = hud.root.theme
-			dialog.dialog_text = "¿Sustituir la partida actual? Los cambios sin guardar se perderán."
-			dialog.title = "Cargar partida" if name_value == "load" else "Nueva partida"
-			dialog.ok_button_text = "Continuar"
-			dialog.cancel_button_text = "Cancelar"
-			add_child(dialog)
-			dialog.confirmed.connect(func() -> void:
-				if name_value == "new": sim.create(1530,sim.definitions)
+			runner.speed = 0
+			refresh()
+			hud.confirm_action("Cargar partida" if name_value == "load" else "Nueva partida",func() -> void:
+				if name_value == "new":
+					sim.create(1530,sim.definitions)
+					world.focus = Map.START_FOCUS
+					world.camera.size = 30
+					world.update_camera()
 				else:
 					var result: Dictionary = Save.load_game(sim)
 					hud.message_label.text = "Partida cargada" if result.ok else result.message
@@ -196,7 +199,4 @@ func action(name_value: String) -> void:
 				world.buildings.clear()
 				hud.selected_building = 0
 				hud.selected_citizen = 0
-				refresh()
-				dialog.queue_free())
-			dialog.canceled.connect(dialog.queue_free)
-			dialog.popup_centered()
+				refresh())

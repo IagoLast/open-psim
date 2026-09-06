@@ -8,10 +8,11 @@ rows=[
     ("RECURSOS", [("wood","Madera"),("grain","Cereal"),("fish","Sardina"),("salt","Sal"),("salted_fish","Salazón"),("coins","Monedas"),("population","Población"),("happiness","Bienestar")]),
     ("ARQUITECTURA", [("house_cottage","Casa pequeña"),("house","Casa con soportal"),("house_tall","Casa de dos plantas"),("well","Pozo"),("farm","Campo de cereal"),("lumber","Leñadores"),("fishery","Pesquería"),("saltery","Taller de salazón")]),
     ("ENTORNO", [("warehouse","Almacén portuario"),("sailboat","Barca de vela"),("rowboat","Barca de remos"),("tree_oak","Roble"),("tree_cypress","Ciprés"),("citizen","Vecino")]),
+    ("PAISAJE", [("bridge_stone","Puente del Burgo"),("tree_pine","Pino"),("rock_cluster","Granito y musgo"),("grass_clump","Hierba"),("wildflowers","Flores de pradera"),("reeds","Juncos"),("gorse","Tojo")]),
     ("INTERFAZ", [("category_housing","Viviendas"),("category_services","Servicios"),("category_food","Alimentación"),("category_materials","Materias primas"),("select","Seleccionar"),("demolish","Demoler"),("road","Camino de piedra")]),
 ]
 background=json.loads((root/'docs/design-style.json').read_text())["palette"]["background"]
-sheet=Image.new("RGB",(1920,1260),background)
+sheet=Image.new("RGB",(1920,128+283*len(rows)),background)
 draw=ImageDraw.Draw(sheet)
 font_path=Path('/System/Library/Fonts/Supplemental/Arial.ttf')
 font=lambda size: ImageFont.truetype(str(font_path),size) if font_path.exists() else ImageFont.load_default()

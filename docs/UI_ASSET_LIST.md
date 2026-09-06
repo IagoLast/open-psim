@@ -10,10 +10,12 @@ Tienen alfa, luz suave y la paleta definida en `art/blender/common.py`.
 | Herramientas | 256 × 256 | select, demolish |
 | Construcción | 512 × 512 | house, road, well, farm, lumber, fishery, saltery |
 | Variantes y revisión del entorno | 512 × 512 | house_cottage, house_tall, warehouse, sailboat, rowboat, tree_oak, tree_cypress, citizen |
+| Paisaje | 512 × 512 | tree_pine, bridge_stone, rock_cluster, grass_clump, wildflowers, reeds, gorse |
+| Variaciones por semilla | 512 × 512 | 12 entradas de `data/model_variants.json`; regeneración en `art/README.md` |
 
 Las variantes de vivienda comparten función y coste. Sus diferencias son visuales.
 Los recursos también tienen GLB editables para reutilizarlos como objetos 3D.
-El HUD utiliza 21 PNG; la colección completa contiene 29 renders.
+El HUD utiliza 21 PNG; la colección completa contiene 48 renders.
 
 No se dibujan versiones provisionales si falta un archivo: la importación debe
 pasar `tools/check_ui_assets.gd` y `tools/check_models.gd`.

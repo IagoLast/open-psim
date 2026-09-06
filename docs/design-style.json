@@ -14,7 +14,7 @@
     "location": "Pontevedra, Galicia, Spain",
     "period": "late 15th to 16th century",
     "reference_year": 1530,
-    "architecture": ["Galician stone construction", "warm off-white stone walls", "terracotta tiled roofs", "simple timber structures", "small wooden doors", "small windows", "functional pre-industrial architecture"],
+    "architecture": ["Galician granite construction", "warm sand and greige stone walls with subtly darker damp plinths", "terracotta tiled roofs", "simple timber structures", "small wooden doors", "small windows", "functional pre-industrial architecture"],
     "avoid_anachronisms": true
   },
   "camera": {
@@ -45,7 +45,7 @@
   },
   "palette": {
     "background": "#F3E5C5",
-    "stone": ["#E7D7B8", "#D8C5A4", "#C8B594"],
+    "stone": ["#D2C2A5", "#BEAE92", "#A79982"],
     "terracotta": ["#D97950", "#C86645", "#E08A5D"],
     "wood": ["#9B6845", "#7E5238", "#B27A50"],
     "vegetation": ["#70885A", "#899C63", "#526F4C"],
@@ -56,10 +56,10 @@
     "salt": ["#EFEDE5", "#D9D9D2"],
     "iron": ["#646866", "#505554"],
     "coins": ["#D9A53C", "#E8BB50"],
-    "rule": "use a restrained warm palette with muted saturation"
+    "rule": "follow the user's Pontevedra photo: warm sand and greige stone, slightly dimmer than the original cream palette; neutral light, subtle damp joints, moss localized rather than tinting the stone green"
   },
   "lighting": {
-    "type": "soft studio-like global illumination",
+    "type": "soft neutral daylight with restrained intensity, preserving the warm stone hue without blown highlights or blue-green fill",
     "key_light_direction": "upper left",
     "shadow_direction": "lower right",
     "shadow_type": "soft but clearly readable",
@@ -114,7 +114,7 @@
     "complexity": "simple but functionally distinctive",
     "base": "small isometric terrain footprint",
     "roof_style": "simple terracotta pitched roof where appropriate",
-    "walls": "warm light Galician stone",
+    "walls": "warm sand and grey-beige Galician granite from the provided Pontevedra photo, subtle darker plinths and restrained moss in sheltered joints",
     "props": "maximum 3 to 6 functional props",
     "vegetation": "maximum 1 to 4 small stylized plants unless the building is agricultural",
     "rule": "each building must be identifiable primarily from its silhouette and one signature feature"

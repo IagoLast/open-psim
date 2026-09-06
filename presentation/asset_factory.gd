@@ -45,10 +45,12 @@ static func label(parent: Node3D, text: String, at: Vector3, font_size: int = 32
 	parent.add_child(item)
 	return item
 
-static func building(kind: String, size: int, id: int, title: String) -> Node3D:
+static func building(kind: String, size: int, id: int, title: String, world_seed: int = 1530, identity: String = "") -> Node3D:
 	var root := Node3D.new()
 	var s: float = float(size)
 	var model_kind: String = HOUSE_VARIANTS[posmod(id, HOUSE_VARIANTS.size())] if kind == "house" else kind
+	# Preserve the three established silhouettes; finite detail catalogues are optional.
+	model_kind = Models.Variants.choose(model_kind,world_seed,identity if not identity.is_empty() else str(id))
 	var orientation: float = 0.0
 	var prototype: bool = not ResourceLoader.exists("res://assets/models/%s.glb" % model_kind)
 	var model: Node3D = null if prototype else Models.create(model_kind, orientation, Vector2.ONE * (s - 0.06))

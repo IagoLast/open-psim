@@ -16,13 +16,13 @@ func create(seed_value: int, data: Dictionary, _scenario: Dictionary = {}) -> vo
 	topology = 0
 	definitions = data.duplicate(true)
 	var terrain: Array = Map.generate(seed_value)
-	state = {"schema":2, "map_size":Map.SIZE, "balance_version":definitions.balance.version, "seed":seed_value, "rng_state":str(seed_value), "tick":0, "sequence":0, "next_building":1, "next_citizen":1, "coins":definitions.balance.coins, "inventory":definitions.balance.inventory.duplicate(true), "terrain":terrain, "roads":[], "buildings":[], "citizens":[], "exported":0, "immigration_checks":0, "milestones":[], "alerts":[], "voyages":[], "trade_routes":[], "trade_history":[], "trade_volume":{}, "trade_season":0, "trade_completed":0, "next_voyage":1}
-	_add_building("warehouse", 65, 54)
-	_add_building("house", 69, 54)
-	_add_building("house", 72, 54)
-	_add_building("well", 75, 54)
-	for x: int in range(65, 78): state.roads.append(53 * width() + x)
-	for z: int in range(47, 53): state.roads.append(z * width() + 77)
+	state = {"schema":2, "map_id":Map.ID, "map_size":Map.SIZE, "balance_version":definitions.balance.version, "seed":seed_value, "rng_state":str(seed_value), "tick":0, "sequence":0, "next_building":1, "next_citizen":1, "coins":definitions.balance.coins, "inventory":definitions.balance.inventory.duplicate(true), "terrain":terrain, "roads":[], "buildings":[], "citizens":[], "exported":0, "immigration_checks":0, "milestones":[], "alerts":[], "voyages":[], "trade_routes":[], "trade_history":[], "trade_volume":{}, "trade_season":0, "trade_completed":0, "next_voyage":1}
+	_add_building("warehouse", Map.START.x, Map.START.y)
+	_add_building("house", Map.START.x+4, Map.START.y)
+	_add_building("house", Map.START.x+7, Map.START.y)
+	_add_building("well", Map.START.x+10, Map.START.y)
+	for dx: int in range(13): state.roads.append((Map.START.y-1)*width()+Map.START.x+dx)
+	for dz: int in range(-7,-1): state.roads.append((Map.START.y+dz)*width()+Map.START.x+12)
 	rebuild()
 	for home: int in [2, 3]:
 		for i: int in range(4): _add_citizen(home, building(home).access)
@@ -91,6 +91,7 @@ func terrain_error(kind: String, x: int, z: int) -> String:
 	var size: int = definitions.buildings[kind].size
 	if x < 0 or z < 0 or x + size > width() or z + size > width(): return "Fuera del mapa"
 	for cell: int in footprint(kind, x, z):
+		if Map.BURGO_BRIDGE.has_point(Vector2i(cell%width(),cell/width())): return "El puente debe quedar libre para caminos"
 		if state.terrain[cell] == "water": return "Necesita tierra firme"
 		if definitions.buildings[kind].get("fertile",false) and state.terrain[cell] != "fertile": return "Terreno no fértil"
 	if definitions.buildings[kind].get("coastal",false):

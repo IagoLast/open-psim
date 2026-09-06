@@ -12,8 +12,10 @@ from mathutils import Vector
 
 ROOT = Path(__file__).resolve().parents[2]
 HEX = {
-    "stone": "c5b697", "stone_light": "ded0b3", "cream": "ecdfc4",
-    "masonry_warm": "e5d6b9", "masonry_pale": "f0e3c9", "mortar": "bdae8f",
+    "stone": "beae92", "stone_light": "d2c2a5", "stone_dark": "a79982", "cream": "e7d7b8",
+    "masonry_warm": "c4b294", "masonry_pale": "cfc0a5", "mortar": "968b77",
+    "stone_wet": "9e937f", "moss": "546545", "lichen": "999d70", "earth": "84765f",
+    "granite": "beae92", "granite_light": "d2c2a5", "granite_shadow": "a79982",
     "roof": "d8754c", "roof_light": "e58155", "roof_dark": "bd603e",
     "wood": "825b38", "wood_light": "aa7c4c", "wood_end": "d4aa75",
     "wood_honey": "b98956", "rope": "c7a16b", "iron": "61645c",
@@ -30,7 +32,7 @@ HEX = {
 # Keep the user's design prompt as the single source for principal swatches.
 STYLE = json.loads((ROOT / "docs/design-style.json").read_text())
 for family, keys in {
-    "stone": ("cream", "stone_light", "stone"),
+    "stone": ("stone_light", "stone", "stone_dark"),
     "terracotta": ("roof", "roof_dark", "roof_light"),
     "wood": ("wood_light", "wood", "wood_honey"),
     "vegetation": ("green", "leaf_olive", "leaf_forest"),
@@ -40,6 +42,12 @@ for family, keys in {
     "coins": ("gold", "gold_light"),
 }.items():
     HEX.update(zip(keys, (value.lstrip("#") for value in STYLE["palette"][family])))
+
+# Warm sand/greige stone follows the user's Pontevedra photo, with lower value
+# than the original cream palette. Dampness does not turn the mineral green.
+# Quarried stone, bridge masonry and boulders share the same granite swatches.
+# Cream is reserved for linen and other light props, not building stone.
+HEX.update(granite=HEX["stone"], granite_light=HEX["stone_light"], granite_shadow=HEX["stone_dark"])
 
 def linear(c):
     return c / 12.92 if c <= .04045 else ((c + .055) / 1.055) ** 2.4
@@ -65,8 +73,10 @@ def mat(name):
     material.use_nodes = True
     bsdf = material.node_tree.nodes.get("Principled BSDF")
     bsdf.inputs["Base Color"].default_value = PALETTE[name]
-    bsdf.inputs["Roughness"].default_value = .9
-    bsdf.inputs["Specular IOR Level"].default_value = .18
+    mineral = name in {"stone", "stone_light", "stone_dark", "stone_wet", "mortar",
+                       "masonry_warm", "masonry_pale", "granite", "granite_light", "granite_shadow"}
+    bsdf.inputs["Roughness"].default_value = .78 if name == "stone_wet" else (.96 if mineral else .9)
+    bsdf.inputs["Specular IOR Level"].default_value = .10 if mineral else .18
     return material
 
 
@@ -126,7 +136,10 @@ def beam(name, start, end, radius=.04, material="wood"):
     return obj
 
 
-def render(name, resolution=512, export_model=False):
+def render(name, resolution=512, export_model=False, output_root=ROOT):
+    output_root = Path(output_root)
+    for folder in ["assets/ui", "assets/models", "art/blender"]:
+        (output_root/folder).mkdir(parents=True, exist_ok=True)
     scene = bpy.context.scene
     meshes = [obj for obj in scene.objects if obj.type == "MESH"]
     for obj in meshes: obj.pass_index = 1
@@ -175,7 +188,7 @@ def render(name, resolution=512, export_model=False):
     scene.view_settings.look = "None"
     scene.view_settings.exposure = 0
     scene.view_settings.gamma = 1
-    scene.render.filepath = str(ROOT/"assets/ui"/(name+".png"))
+    scene.render.filepath = str(output_root/"assets/ui"/(name+".png"))
     # Ground only catches shadows in the thumbnail, never exported to the game.
     bpy.ops.mesh.primitive_plane_add(size=max(high-low)*200, location=(0,0,low.z-.015))
     ground = bpy.context.object
@@ -229,7 +242,7 @@ def render(name, resolution=512, export_model=False):
     compositor.links.new(coverage.outputs[0], multiply.inputs[0])
     compositor.links.new(multiply.outputs[0], alpha.inputs["Alpha"])
     compositor.links.new(alpha.outputs["Image"], output.inputs["Image"])
-    bpy.ops.wm.save_as_mainfile(filepath=str(ROOT/"art/blender"/(name+".blend")))
+    bpy.ops.wm.save_as_mainfile(filepath=str(output_root/"art/blender"/(name+".blend")))
     if export_model:
         bpy.ops.object.select_all(action="DESELECT")
         for obj in meshes: obj.select_set(True)
@@ -244,7 +257,7 @@ def render(name, resolution=512, export_model=False):
             bpy.ops.object.convert(target="MESH")
             bpy.ops.object.join()
             bpy.context.object.name = name
-        bpy.ops.export_scene.gltf(filepath=str(ROOT/"assets/models"/(name+".glb")),
+        bpy.ops.export_scene.gltf(filepath=str(output_root/"assets/models"/(name+".glb")),
                                   use_selection=True, export_apply=True)
         if name != "citizen":
             bpy.ops.object.delete(use_global=False)

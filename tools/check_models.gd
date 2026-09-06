@@ -7,24 +7,35 @@ const FOOTPRINTS: Dictionary = {
 	"road": 1.0, "well": 1.0, "farm": 4.0, "lumber": 2.0,
 	"fishery": 2.0, "saltery": 2.0, "warehouse": 3.0,
 	"sailboat": 0.0, "rowboat": 0.0, "tree_oak": 0.0,
-	"tree_cypress": 0.0, "citizen": 0.0,
+	"tree_cypress": 0.0, "tree_pine": 0.0, "citizen": 0.0,
+	"bridge_stone": 0.0, "rock_cluster": 0.0, "grass_clump": 0.0,
+	"wildflowers": 0.0, "reeds": 0.0, "gorse": 0.0,
 	"wood": 0.0, "grain": 0.0, "fish": 0.0, "salt": 0.0,
 	"salted_fish": 0.0, "coins": 0.0, "population": 0.0, "happiness": 0.0
 }
 var failures: int = 0
+var footprints: Dictionary = FOOTPRINTS.duplicate()
 
 func _initialize() -> void:
+	for kind: String in Models.Variants.catalog.models:
+		var family: String = Models.Variants.family(kind)
+		if not FOOTPRINTS.has(family):
+			fail("UNKNOWN VARIANT FAMILY " + family)
+			continue
+		footprints[kind] = FOOTPRINTS[family]
 	for file_name: String in DirAccess.get_files_at("res://assets/models"):
-		if file_name.get_extension() == "glb" and not FOOTPRINTS.has(file_name.get_basename()):
+		if file_name.get_extension() == "glb" and not footprints.has(file_name.get_basename()):
 			fail("UNLISTED MODEL " + file_name)
-	for kind: String in FOOTPRINTS:
+	for kind: String in footprints:
 		check_model(kind)
 	check_citizen()
 	check_house_variants()
-	print("MODELS: ", FOOTPRINTS.size(), " checked; ", failures, " failures")
+	check_variant_catalog()
+	print("MODELS: ", footprints.size(), " checked; ", failures, " failures")
 	quit(1 if failures > 0 else 0)
 
 func check_model(kind: String) -> void:
+	var family: String = Models.Variants.family(kind)
 	var path: String = "res://assets/models/%s.glb" % kind
 	if not ResourceLoader.exists(path):
 		fail("MISSING " + path)
@@ -44,16 +55,20 @@ func check_model(kind: String) -> void:
 		raw.free()
 		return
 	var bound: AABB = merge_bounds(stats.boxes)
-	if not valid_bounds(bound): fail("INVALID BOUNDS %s %s" % [kind, bound])
+	if not valid_bounds(bound,10.1 if family == "bridge_stone" else 10.0): fail("INVALID BOUNDS %s %s" % [kind, bound])
 	var budget: int = 20000
-	if kind.begins_with("tree_"): budget = 2500
+	if kind.begins_with("tree_") or family in ["rock_cluster","gorse"]: budget = 2500
 	if kind in ["sailboat", "rowboat"]: budget = 6000
 	if kind == "citizen": budget = 1500
 	if kind == "road": budget = 1000
 	if stats.triangles > budget: fail("TRIANGLE BUDGET %s %d > %d" % [kind, stats.triangles, budget])
 	if kind != "citizen" and stats.meshes > 4:
 		fail("STATIC MESHES %s has %d mesh nodes; join geometry before export" % [kind, stats.meshes])
-	var width: float = FOOTPRINTS[kind]
+	if family == "bridge_stone" and kind != family:
+		var canonical: Node3D = Models.create(family)
+		if not bound.is_equal_approx(Models.bounds[family]): fail("BRIDGE FOOTPRINT / DECK " + kind)
+		canonical.free()
+	var width: float = footprints[kind]
 	var footprint: Vector2 = Vector2.ONE * (width - (0.02 if kind == "road" else 0.06)) if width > 0.0 else Vector2.ZERO
 	var placed: Node3D = Models.create(kind, 0.0, footprint, kind == "road")
 	if placed == null:
@@ -112,6 +127,51 @@ func check_house_variants() -> void:
 		building.free()
 	if seen.size() != 3: fail("HOUSE VARIANTS are not all used")
 
+func check_variant_catalog() -> void:
+	var catalog: Dictionary = Models.Variants.catalog
+	if catalog.schema != 1 or catalog.selection_version != 1: fail("CATALOGUE VERSION")
+	for family: String in catalog.families:
+		var entries: Array = catalog.families[family]
+		if entries.is_empty() or entries[0] != family or entries.size() > 9:
+			fail("CANONICAL / FINITE CATALOGUE " + family)
+		var seen: Dictionary = {}
+		for kind: String in entries:
+			if seen.has(kind) or not footprints.has(kind) or Models.Variants.family(kind) != family:
+				fail("CATALOGUE ENTRY " + kind)
+			seen[kind] = true
+		var selected: Dictionary = {}
+		var changed: bool = false
+		for cell: int in range(512):
+			var a: String = Models.Variants.choose(family,1530,str(cell))
+			var b: String = Models.Variants.choose(family,1531,str(cell))
+			selected[a] = true
+			changed = changed or a != b
+			if a != Models.Variants.choose(family,1530,str(cell)): fail("UNSTABLE SELECTION " + family)
+		if selected.size() != entries.size() or (entries.size() > 1 and not changed):
+			fail("UNREACHABLE VARIANTS / SEED " + family)
+		for kind: String in entries:
+			var a: Node3D = Models.create(kind)
+			var b: Node3D = Models.create(kind)
+			var parts_a: Array[MeshInstance3D] = []
+			var parts_b: Array[MeshInstance3D] = []
+			mesh_parts(a,parts_a)
+			mesh_parts(b,parts_b)
+			for index: int in range(parts_a.size()):
+				if parts_a[index].mesh != parts_b[index].mesh: fail("UNSHARED MESH " + kind)
+				for surface: int in range(parts_a[index].mesh.get_surface_count()):
+					if parts_a[index].mesh.surface_get_material(surface) != parts_b[index].mesh.surface_get_material(surface):
+						fail("UNSHARED MATERIAL " + kind)
+			a.free()
+			b.free()
+	# Fixed vectors guard selection across native/Web exports and future refactors.
+	if Models.Variants.stable_seed(1530,"120","scatter") != 3425388361: fail("VISUAL HASH V1")
+	print("VARIANT CATALOGUE: canonical aliases, finite entries, seeds, shared resources")
+
+func mesh_parts(node: Node3D, output: Array[MeshInstance3D]) -> void:
+	if node is MeshInstance3D: output.append(node)
+	for child: Node in node.get_children():
+		if child is Node3D: mesh_parts(child,output)
+
 func collect(node: Node3D, parent_transform: Transform3D, stats: Dictionary) -> void:
 	var transform: Transform3D = parent_transform * node.transform
 	if node is MeshInstance3D and node.mesh != null:
@@ -133,8 +193,8 @@ func merge_bounds(boxes: Array) -> AABB:
 	for index: int in range(1, boxes.size()): merged = merged.merge(boxes[index])
 	return merged
 
-func valid_bounds(bound: AABB) -> bool:
-	return bound.position.is_finite() and bound.size.is_finite() and bound.size.x > 0.001 and bound.size.y > 0.001 and bound.size.z > 0.001 and bound.size.x < 10.0 and bound.size.y < 10.0 and bound.size.z < 10.0
+func valid_bounds(bound: AABB, limit: float = 10.0) -> bool:
+	return bound.position.is_finite() and bound.size.is_finite() and bound.size.x > 0.001 and bound.size.y > 0.001 and bound.size.z > 0.001 and bound.size.x < limit and bound.size.y < limit and bound.size.z < limit
 
 func fail(message: String) -> void:
 	failures += 1

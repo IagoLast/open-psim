@@ -54,7 +54,7 @@ def roof(x,y,z,width,depth,rise,material="roof"):
 def gable(x,y,z,width,depth,rise):
     vertices=[(x-width/2,y-depth/2,z),(x+width/2,y-depth/2,z),(x,y-depth/2,z+rise),
               (x-width/2,y+depth/2,z),(x+width/2,y+depth/2,z),(x,y+depth/2,z+rise)]
-    return mesh("Solid cream masonry gables",vertices,[(0,2,1),(3,4,5),(0,3,5,2),(1,2,5,4),(0,1,4,3)],"cream")
+    return mesh("Solid granite masonry gables",vertices,[(0,2,1),(3,4,5),(0,3,5,2),(1,2,5,4),(0,1,4,3)],"stone")
 
 
 def ring(name,x,y,z,outer,inner,height,material="wood",sides=12):
@@ -99,16 +99,17 @@ def tree(x,y,scale=1):
          [(j*7+i,j*7+(i+1)%7,(j+1)*7+(i+1)%7,(j+1)*7+i) for j in range(4) for i in range(7)],"green")
 
 
-def plot(width,depth,material="stone_light"):
-    box("Thin sandy plot",(0,0,.027),(width,depth,.054),material,.025)
-    for x,y,w,d,tone in [(-width*.35,-depth*.35,width*.29,depth*.22,"cream"),
-                         (width*.30,depth*.35,width*.37,depth*.27,"ground"),
-                         (-width*.38,depth*.29,width*.22,depth*.30,"leaf_sage")]:
+def plot(width,depth,material="stone"):
+    box("Muted stone and earth plot",(0,0,.027),(width,depth,.054),material,.025)
+    for x,y,w,d,tone in [(-width*.35,-depth*.35,width*.29,depth*.22,"stone_light"),
+                         (width*.30,depth*.35,width*.37,depth*.27,"earth"),
+                         (-width*.38,depth*.29,width*.22,depth*.30,"moss")]:
         box("Quiet patch on miniature base",(x,y,.057),(w,d,.006),tone,0)
 
 
 def masonry(x,y,width,depth,height,bottom=.065):
-    box("Limewashed limestone walls",(x,y,bottom+height/2),(width,depth,height),"cream",.012)
+    box("Warm weathered granite walls",(x,y,bottom+height/2),(width,depth,height),"stone",.012)
+    box("Damp granite plinth",(x,y,bottom+.065),(width+.008,depth+.008,.13),"stone_wet",.009)
     rng=random.Random(42+round(width*100))
     for side in [-1,1]:
         for row in range(max(2,round(height/.23))):
@@ -117,19 +118,19 @@ def masonry(x,y,width,depth,height,bottom=.065):
                 if rng.random()>.40: continue
                 xx=x-width/2+.13+col*.25+(row%2)*.055
                 if xx>x+width/2-.1: continue
-                box("Subtle limewash stone face",(xx,y+side*(depth/2+.0015),zz),
+                box("Subtle granite block face",(xx,y+side*(depth/2+.0015),zz),
                     (.18+rng.random()*.05,.009,.14+rng.random()*.035),
-                    rng.choice(["masonry_warm","masonry_pale","stone_light"]),.003)
+                    rng.choice(["stone_wet","stone_dark"] if row == 0 else ["masonry_warm","stone_light","stone"]),.003)
             for col in range(max(3,round(depth/.25))):
                 if rng.random()>.38: continue
                 yy=y-depth/2+.13+col*.25
                 if yy>y+depth/2-.08: continue
                 box("Subtle side masonry",(x+side*(width/2+.002),yy,zz),(.01,.21,.17),
-                    rng.choice(["masonry_warm","masonry_pale","stone_light"]),.003)
+                    rng.choice(["stone_wet","stone_dark"] if row == 0 else ["masonry_warm","stone_light","stone"]),.003)
         for xx in [x-width/2,x+width/2]:
             for row in range(2):
                 box("Foundation corner stone",(xx,y+side*(depth/2-.08),bottom+.07+row*.145),
-                    (.17,.18,.14),"stone_light" if row else "stone",.006)
+                    (.17,.18,.14),"stone" if row else "stone_wet",.006)
 
 
 def window(x,y,z,side=False,flowers=False,shutters=True,width=.25,height=.34):
@@ -164,11 +165,11 @@ def door(x,y,bottom=.08,height=.82,width=.36):
 
 
 def chimney(x,y,bottom,height=.62):
-    box("Limestone chimney shaft",(x,y,bottom+(height-.07)/2),(.25,.27,height-.07),"stone_light",.006)
+    box("Granite chimney shaft",(x,y,bottom+(height-.07)/2),(.25,.27,height-.07),"stone",.006)
     for level in range(3):
         z=bottom+height*(level+.5)/3
         box("Chimney block face",(x-.026,y-.138,z),(.19,.01,height/3-.008),"masonry_pale" if level%2 else "masonry_warm",.002)
-        box("Chimney side block",(x+.128,y+.02,z),(.01,.21,height/3-.008),"cream" if level%2 else "stone",.002)
+        box("Chimney side block",(x+.128,y+.02,z),(.01,.21,height/3-.008),"stone_light" if level%2 else "stone_dark",.002)
     box("Dark open chimney interior",(x,y,bottom+height-.049),(.24,.26,.018),"dark",0)
     for dx,dy,w,d in [(-.134,0,.055,.32),(.134,0,.055,.32),(0,-.145,.23,.055),(0,.145,.23,.055)]:
         box("Open cut-stone chimney rim",(x+dx,y+dy,bottom+height+.023),(w,d,.065),"masonry_pale",.004)
@@ -257,17 +258,21 @@ def house_tall():
 
 
 def road():
-    box("Path bedding",(0,0,.018),(1,1,.036),"ground",.012)
+    box("Damp grit between paving stones",(0,0,.018),(1,1,.036),"mortar",.012)
+    rng = random.Random(73)
     for row in range(3):
-        for col in range(3):
-            box("Limestone paving slab",(-.333+col/3,-.333+row/3,.047),(.317,.317,.045),
-                ["stone_light","cream","masonry_warm"][(row+col*2)%3],.013)
+        edges = [-.5,-.17,.16,.5] if row%2 == 0 else [-.5,-.34,0,.33,.5]
+        for col,(left,right) in enumerate(zip(edges,edges[1:])):
+            box("Worn granite paving slab",((left+right)/2,-.333+row/3,.047),
+                (right-left-.018,.313,.045),rng.choice(["stone","stone","masonry_warm","stone_wet"]),.010)
+    for x,y,w,d in [(-.174,-.26,.015,.14),(.19,.166,.16,.012),(-.43,-.165,.10,.013)]:
+        box("Moss in sheltered paving joint",(x,y,.038),(w,d,.006),"moss",0)
 
 
 def well():
     plot(1.66,1.62)
     for xx,yy in [(-.54,-.57),(-.19,-.63),(.17,-.63),(.53,-.57),(.61,-.23)]:
-        box("Apron paving stone",(xx,yy,.079),(.31,.28,.048),"cream",.010)
+        box("Apron paving stone",(xx,yy,.079),(.31,.28,.048),"stone",.010)
     sides=12
     for tier in range(3):
         bottom=.07+tier*.164
@@ -275,8 +280,8 @@ def well():
             a=(i+(tier%2)*.5)*math.tau/sides+.007; b=(i+1+(tier%2)*.5)*math.tau/sides-.007
             verts=[(r*math.cos(t),r*math.sin(t),z) for z in [bottom,bottom+.158]
                    for r,t in [(.49,a),(.49,b),(.33,b),(.33,a)]]
-            obj=mesh("Staggered limestone well block",verts,FACES,
-                     ["cream","stone_light","masonry_warm","masonry_pale"][(i+tier*3)%4])
+            obj=mesh("Staggered granite well block",verts,FACES,
+                     ["stone_wet","stone_dark","stone","masonry_warm"][(i+tier*3)%4])
             mod=obj.modifiers.new("Worn stone edge","BEVEL"); mod.width=.006; mod.segments=1
             obj.modifiers.new("Block normals","WEIGHTED_NORMAL")
     for i in range(sides):

@@ -18,9 +18,15 @@
     "source": ""
   },
   {
-    "title": "Una provincia por explorar",
+    "title": "La ría, de orilla a orilla",
     "classification": "Geografía estilizada",
-    "text": "El mapa toma como referencia las rías de Arousa, Pontevedra y Vigo, Ons, Cíes y las zonas de O Salnés, O Morrazo, Baixo Miño y el interior. Escala, contornos y yacimientos están adaptados para jugar.",
-    "source": "https://www.turismoriasbaixas.com/index.php/es/descubre/rias-baixas-al-natural/rios-y-rias/las-rias"
+    "text": "El mapa se concentra en la ría interior: Pontevedra y la desembocadura del Lérez, Combarro y Poio en la orilla norte, Lourizán y Marín en la sur, y la isla de Tambo entre ambas. Contornos, escala y yacimientos están adaptados para jugar. El paso del Burgo se representa como terreno transitable para conectar caminos entre las dos orillas.",
+    "source": "https://www.turismoriasbaixas.com/es/search/ria-de-pontevedra"
+  },
+  {
+    "title": "El paso del Burgo",
+    "classification": "Documentado / adaptación jugable",
+    "text": "El puente del Burgo es el paso histórico sobre el Lérez. En el juego aparece como un cruce fijo para extender caminos hacia Poio y Combarro; su escala y construcción están simplificadas.",
+    "source": "https://www.visit-pontevedra.com/que-ver/puentes/"
   }
 ]

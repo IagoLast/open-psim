@@ -1,7 +1,11 @@
 extends RefCounted
 ## Blender is the only source of visible models. Instances share meshes/materials.
+const Variants = preload("res://presentation/model_variants.gd")
 static var scenes: Dictionary = {}
 static var bounds: Dictionary = {}
+
+static func create_variant(kind: String, world_seed: int, identity: String, rotation: float = 0.0, footprint: Vector2 = Vector2.ZERO) -> Node3D:
+	return create(Variants.choose(kind, world_seed, identity), rotation, footprint)
 
 static func create(kind: String, rotation: float = 0.0, footprint: Vector2 = Vector2.ZERO, tile: bool = false) -> Node3D:
 	var path: String = "res://assets/models/%s.glb" % kind
