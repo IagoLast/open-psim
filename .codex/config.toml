@@ -1,0 +1,11 @@
+[mcp_servers.blender]
+command = "/Users/iagolast/.local/bin/uvx"
+args = ["--python", "3.11", "blender-mcp==1.9.1"]
+startup_timeout_sec = 60
+tool_timeout_sec = 180
+
+[mcp_servers.blender.env]
+BLENDER_HOST = "127.0.0.1"
+BLENDER_PORT = "9876"
+DISABLE_TELEMETRY = "true"
+UV_PYTHON_PREFERENCE = "only-managed"

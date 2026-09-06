@@ -1,0 +1,20 @@
+[
+  {
+    "title": "A Moureira",
+    "classification": "Documentado / reconstrucción",
+    "text": "La fuente municipal vincula A Moureira con la actividad marinera, la salazón y la exportación de pescado en el siglo XVI. Este sector y sus habitantes son ficticios; no representan la fundación ni toda Pontevedra.",
+    "source": "https://www.visit-pontevedra.com/que-ver/otros-lugares-de-interes/barrio-de-la-moureira/"
+  },
+  {
+    "title": "Salazón y comercio",
+    "classification": "Documentado / adaptación jugable",
+    "text": "La vinculación local entre salazón y exportación está documentada en la fuente municipal. Precios, recetas, capacidad y comercio instantáneo son valores ficticios de diseño.",
+    "source": "https://www.visit-pontevedra.com/que-ver/otros-lugares-de-interes/barrio-de-la-moureira/"
+  },
+  {
+    "title": "Qué simplifica esta V0",
+    "classification": "Adaptación jugable",
+    "text": "Todos los vecinos son adultos aptos para trabajar. No hay nacimientos, muertes, salarios ni transporte físico. Distribución centralizada: el transporte de mercancías no se simula todavía. Bosque y caladero no se agotan. Cereal y sardina se comen directamente. La reserva de dos días protege comida frente a la salazón.",
+    "source": ""
+  }
+]

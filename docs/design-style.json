@@ -1,0 +1,138 @@
+{
+  "style_id": "pontevedra_low_poly_v1",
+  "purpose": "Consistent asset generation for a historical isometric city-builder game",
+  "art_direction": {
+    "style": "cute stylized low-poly 3D game asset",
+    "visual_language": ["simple geometric forms", "clean readable silhouettes", "minimal surface detail", "soft handcrafted appearance", "small diorama feeling", "friendly strategy-game aesthetic", "historically inspired but visually simplified"],
+    "realism": 0.25,
+    "stylization": 0.8,
+    "cuteness": 0.45,
+    "detail_level": "medium-low",
+    "texture_complexity": "very low"
+  },
+  "historical_context": {
+    "location": "Pontevedra, Galicia, Spain",
+    "period": "late 15th to 16th century",
+    "reference_year": 1530,
+    "architecture": ["Galician stone construction", "warm off-white stone walls", "terracotta tiled roofs", "simple timber structures", "small wooden doors", "small windows", "functional pre-industrial architecture"],
+    "avoid_anachronisms": true
+  },
+  "camera": {
+    "projection": "orthographic",
+    "view": "isometric three-quarter view",
+    "horizontal_rotation_degrees": 45,
+    "elevation_degrees": 35,
+    "perspective_distortion": "none",
+    "orientation": "show front, right side and roof",
+    "consistency": "use exactly the same camera orientation for every asset"
+  },
+  "geometry": {
+    "style": "low-poly",
+    "polygon_feel": "clearly simplified but not aggressively faceted",
+    "edges": "clean",
+    "bevels": "small and subtle",
+    "silhouette_priority": "very high",
+    "micro_detail": false,
+    "functional_exaggeration": "slightly exaggerate important features for readability"
+  },
+  "materials": {
+    "type": "matte stylized materials",
+    "photorealistic_textures": false,
+    "visible_texture_noise": false,
+    "metallic_surfaces": "minimal",
+    "roughness": "high",
+    "surface_variation": "subtle"
+  },
+  "palette": {
+    "background": "#F3E5C5",
+    "stone": ["#E7D7B8", "#D8C5A4", "#C8B594"],
+    "terracotta": ["#D97950", "#C86645", "#E08A5D"],
+    "wood": ["#9B6845", "#7E5238", "#B27A50"],
+    "vegetation": ["#70885A", "#899C63", "#526F4C"],
+    "water": ["#79B8BC", "#65A6AC"],
+    "fish": ["#7399A6", "#9AB5BA"],
+    "grain": ["#DDAF4E", "#F0C85E"],
+    "corn": ["#E8B83F", "#6F8B4C"],
+    "salt": ["#EFEDE5", "#D9D9D2"],
+    "iron": ["#646866", "#505554"],
+    "coins": ["#D9A53C", "#E8BB50"],
+    "rule": "use a restrained warm palette with muted saturation"
+  },
+  "lighting": {
+    "type": "soft studio-like global illumination",
+    "key_light_direction": "upper left",
+    "shadow_direction": "lower right",
+    "shadow_type": "soft but clearly readable",
+    "ambient_occlusion": "subtle",
+    "contrast": "medium-low",
+    "dramatic_lighting": false,
+    "rim_light": false,
+    "depth_of_field": false
+  },
+  "composition": {
+    "object_position": "centered",
+    "object_scale": "occupy approximately 65 to 75 percent of available cell",
+    "padding": "generous",
+    "ground_plane": "small subtle base only when required by the object",
+    "background_type": "flat solid color",
+    "horizon": false,
+    "environment": false,
+    "decorative_background": false
+  },
+  "game_readability": {
+    "target": "city-builder viewed from medium and far zoom levels",
+    "priority_order": ["silhouette", "function recognition", "color recognition", "historical character", "small details"],
+    "minimum_icon_readability": "should remain recognizable at approximately 64x64 pixels",
+    "rule": "important gameplay features may be slightly oversized"
+  },
+  "asset_rules": {
+    "people": "none unless explicitly requested",
+    "text_inside_asset": false,
+    "logos": false,
+    "watermarks": false,
+    "UI_frame": false,
+    "random_background_objects": false,
+    "modern_objects": false,
+    "photorealism": false
+  },
+  "resource_icon_rules": {
+    "complexity": "very simple",
+    "object_count": "1 to 4 major forms",
+    "base": "optional",
+    "examples": {
+      "wood": "three or four stacked cut logs",
+      "corn": "one large golden corn cob with two green leaves",
+      "fish": "one or two simplified blue-grey sardines",
+      "salt": "angular white pile of salt in a shallow wooden tray",
+      "salted_fish": "two pale preserved fish on a simple wooden tray",
+      "coins": "three stacks of chunky gold coins",
+      "tools": "simple axe and hammer crossed or grouped together",
+      "population": "two or three faceless geometric human figures"
+    }
+  },
+  "building_rules": {
+    "complexity": "simple but functionally distinctive",
+    "base": "small isometric terrain footprint",
+    "roof_style": "simple terracotta pitched roof where appropriate",
+    "walls": "warm light Galician stone",
+    "props": "maximum 3 to 6 functional props",
+    "vegetation": "maximum 1 to 4 small stylized plants unless the building is agricultural",
+    "rule": "each building must be identifiable primarily from its silhouette and one signature feature"
+  },
+  "negative_prompt": ["photorealistic", "hyperrealistic", "realistic PBR textures", "high-poly", "complex textures", "grunge", "dirty surfaces", "dramatic cinematic lighting", "strong perspective", "fisheye", "depth of field", "busy background", "landscape background", "sky", "modern objects", "industrial machinery", "electricity", "plastic", "cars", "text", "labels", "logo", "watermark", "UI elements", "excessive decoration", "tiny unreadable details"],
+  "subject": {
+    "asset_type": "building",
+    "id": "corn_farm",
+    "description": "Small 16th-century Galician corn farm",
+    "signature_features": ["small stone farmhouse", "terracotta roof", "fenced rectangular corn field", "large readable corn plants", "small wooden agricultural props"],
+    "footprint": "4x4",
+    "include_people": false
+  },
+  "output": {
+    "format": "single isolated game asset",
+    "aspect_ratio": "1:1",
+    "background": "solid warm cream",
+    "transparent_background_preferred": false,
+    "text": false
+  }
+}

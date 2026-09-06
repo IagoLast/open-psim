@@ -1,0 +1,82 @@
+{
+  "house": {
+    "label": "Vivienda",
+    "size": 2,
+    "coins": 30,
+    "wood": 8,
+    "jobs": 0,
+    "capacity": 4,
+    "requirement": "Tierra libre"
+  },
+  "well": {
+    "label": "Pozo",
+    "size": 1,
+    "coins": 20,
+    "wood": 4,
+    "jobs": 0,
+    "requirement": "Agua: hasta 10 pasos por caminos"
+  },
+  "farm": {
+    "label": "Granja",
+    "size": 4,
+    "coins": 60,
+    "wood": 12,
+    "jobs": 2,
+    "work": 300,
+    "inputs": {},
+    "outputs": {
+      "grain": 16
+    },
+    "requirement": "Toda la huella sobre tierra fértil"
+  },
+  "lumber": {
+    "label": "Leñadores",
+    "size": 2,
+    "coins": 40,
+    "wood": 8,
+    "jobs": 2,
+    "work": 150,
+    "inputs": {},
+    "outputs": {
+      "wood": 8
+    },
+    "requirement": "Bosque a un máximo de 3 casillas de la huella"
+  },
+  "fishery": {
+    "label": "Pesquería",
+    "size": 2,
+    "coins": 70,
+    "wood": 12,
+    "jobs": 2,
+    "work": 120,
+    "inputs": {},
+    "outputs": {
+      "fish": 6
+    },
+    "requirement": "Un borde junto al agua"
+  },
+  "saltery": {
+    "label": "Salazón",
+    "size": 2,
+    "coins": 80,
+    "wood": 12,
+    "jobs": 2,
+    "work": 120,
+    "inputs": {
+      "fish": 3,
+      "salt": 1
+    },
+    "outputs": {
+      "salted_fish": 3
+    },
+    "requirement": "Tierra libre; necesita sardina y sal"
+  },
+  "warehouse": {
+    "label": "Almacén portuario",
+    "size": 3,
+    "coins": 0,
+    "wood": 0,
+    "jobs": 0,
+    "requirement": "Edificio inicial protegido"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "wood": {
+    "label": "Madera",
+    "buy": 4,
+    "sell": 2
+  },
+  "grain": {
+    "label": "Cereal",
+    "buy": 3,
+    "sell": 1
+  },
+  "fish": {
+    "label": "Sardina",
+    "buy": -1,
+    "sell": 1
+  },
+  "salt": {
+    "label": "Sal",
+    "buy": 2,
+    "sell": 1
+  },
+  "salted_fish": {
+    "label": "Sardina salada",
+    "buy": -1,
+    "sell": 5
+  }
+}
