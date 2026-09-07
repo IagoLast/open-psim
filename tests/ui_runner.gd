@@ -278,7 +278,12 @@ func run() -> void:
 	await settle()
 	check(game.hud.objective_details.text.contains("Estabilidad"),"Ciudad muestra etapa y progreso")
 	await press("Cerrar")
+	game.sim.state.resource_flow = {"production":{},"consumption":{},"previous":{"production":{"wood":12},"consumption":{"wood":3}}}
+	game.refresh()
+	check(game.hud.resource_flows.wood.text == "+12 / −3","Cabecera muestra producción y consumo en pequeño")
 	await press("Recursos")
+	check(game.hud.ledger_flows.wood.text == "+12 / −3","Panel lateral muestra el mismo balance diario")
+	check(game.hud.ledger_flows.wood.tooltip_text.contains("Último día") and game.hud.ledger_flows.wood.tooltip_text.contains("Excluye comercio"),"Ayuda explica periodo y alcance del balance")
 	await press("Cadenas")
 	await press("Territorio")
 	await press("Existencias")

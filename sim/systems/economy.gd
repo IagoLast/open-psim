@@ -1,6 +1,20 @@
 extends RefCounted
 const GRANARY_FOODS: Array[String] = ["grain","flour","bread"]
 
+static func record_flow(sim: Variant, direction: String, resource: String, amount: int) -> void:
+	if not sim.state.has("resource_flow"):
+		sim.state.resource_flow = {"production":{},"consumption":{},"previous":{}}
+	var totals: Dictionary = sim.state.resource_flow[direction]
+	totals[resource] = totals.get(resource,0)+amount
+
+static func close_flow_day(sim: Variant) -> void:
+	if not sim.state.has("resource_flow"):
+		sim.state.resource_flow = {"production":{},"consumption":{},"previous":{}}
+	var flow: Dictionary = sim.state.resource_flow
+	flow.previous = {"production":flow.production.duplicate(),"consumption":flow.consumption.duplicate()}
+	flow.production.clear()
+	flow.consumption.clear()
+
 static func granary_stock(inventory: Dictionary) -> int:
 	var amount: int = 0
 	for resource: String in GRANARY_FOODS: amount += inventory.get(resource,0)
@@ -81,8 +95,12 @@ static func produce(sim: Variant) -> void:
 			item.work = mini(definition.work, item.work + item.present)
 			if item.work >= definition.work:
 				# Space includes freed inputs. Commit all inputs and outputs exactly once.
-				for resource: String in definition.inputs: sim.state.inventory[resource] -= definition.inputs[resource]
-				for resource: String in definition.outputs: sim.state.inventory[resource] += definition.outputs[resource]
+				for resource: String in definition.inputs:
+					sim.state.inventory[resource] -= definition.inputs[resource]
+					record_flow(sim,"consumption",resource,definition.inputs[resource])
+				for resource: String in definition.outputs:
+					sim.state.inventory[resource] += definition.outputs[resource]
+					record_flow(sim,"production",resource,definition.outputs[resource])
 				item.produced += total(definition.outputs)
 				item.work -= definition.work
 		if block != item.block:

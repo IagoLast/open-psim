@@ -19,6 +19,16 @@ static func check(data: Dictionary, definitions: Dictionary) -> String:
 	for resource: String in definitions.resources:
 		if not data.inventory.get(resource) is int or data.inventory[resource] < 0: return "Inventario inválido"
 
+	if data.has("resource_flow"):
+		var flow: Variant = data.resource_flow
+		if not flow is Dictionary: return "Balance de recursos inválido"
+		if not flow.get("previous") is Dictionary: return "Balance anterior inválido"
+		for period: Dictionary in [flow,flow.previous]:
+			if period.is_empty(): continue
+			for direction: String in ["production","consumption"]:
+				if not period.get(direction) is Dictionary: return "Balance incompleto"
+				for resource: Variant in period[direction]:
+					if not definitions.resources.has(resource) or not period[direction][resource] is int or period[direction][resource] < 0: return "Cantidad de balance inválida"
 	var occupied: Dictionary = {}
 	var roads: Dictionary = {}
 	for cell: Variant in data.roads:

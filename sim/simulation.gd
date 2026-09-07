@@ -312,6 +312,7 @@ func step() -> void:
 		Risks.daily(self)
 		Pilgrims.daily(self)
 		Progression.daily(self)
+		Economy.close_flow_day(self)
 	Economy.milestones(self)
 
 func get_snapshot() -> Dictionary:

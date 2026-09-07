@@ -242,3 +242,9 @@ Los almacenes y hórreos muestran pilas de cajas según su ocupación (incluidas
 las reservas de importación), y un aviso cuando se llenan. Las explotaciones
 sin salida al almacén o bloqueadas por falta de espacio muestran cajas y un
 aviso sobre el edificio, sin tener que seleccionarlo.
+
+La barra superior y **Recursos** muestran en pequeño `+producción / −consumo`
+con las cantidades reales del último día registrado. Antes de cerrar el primer
+día muestran el acumulado en curso. El consumo incluye ingredientes, vecinos,
+peregrinos y conservación; excluye comercio, construcción y cambios de la
+consola. Pasa el ratón por el balance para ver el periodo y la explicación.

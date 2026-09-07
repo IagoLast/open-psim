@@ -72,6 +72,9 @@ func _initialize() -> void:
 	valid(sim,"Fundación integrada")
 	check(not sim.state.merchant.is_empty(),"Mercaderes llegan sin muelle propio")
 	while sim.state.merchant.is_empty() or sim.state.merchant.status != "En puerto": sim.step()
+	var recorded_flow: Dictionary = sim.state.resource_flow.duplicate(true)
+	check(preload("res://sim/systems/economy.gd").total(recorded_flow.previous.production) > 0,"Balance registra producción local real del último día")
+	check(preload("res://sim/systems/economy.gd").total(recorded_flow.previous.consumption) > 0,"Balance registra consumo interno real del último día")
 	var coins: int = sim.state.coins
 	var salt: int = sim.state.inventory.salt
 	check(sim.apply_command({"type":"merchant_trade","warehouse":ids.warehouse,"direction":"buy","resource":"salt","quantity":10}).ok,"Comprar sal desde almacén")
@@ -80,10 +83,12 @@ func _initialize() -> void:
 	var wood: int = sim.state.inventory.wood
 	check(sim.apply_command({"type":"merchant_trade","warehouse":ids.warehouse,"direction":"sell","resource":"wood","quantity":5}).ok,"Venta al mercader visitante")
 	check(sim.state.coins == coins+10 and sim.state.inventory.wood == wood-5,"Venta cobra una vez")
+	check(sim.state.resource_flow == recorded_flow,"Compras y ventas no alteran producción ni consumo interno")
 	reject(sim,{"type":"merchant_trade","warehouse":ids.warehouse,"direction":"buy","resource":"salt","quantity":31},"Cupo agotado rechaza sin efectos")
 	reject(sim,{"type":"merchant_trade","warehouse":ids.warehouse,"direction":"buy","resource":"fish","quantity":1},"Mercancías solo de compra respetadas")
 	var saved: Dictionary = Definitions._integers(JSON.parse_string(JSON.stringify(sim.serialize())))
 	check(clone.restore(saved).ok,"Guardar y cargar visita con cupos gastados")
+	check(clone.state.resource_flow == sim.state.resource_flow,"Balance diario sobrevive al guardado JSON")
 	advance(sim,50)
 	advance(clone,50)
 	check(sim.serialize() == clone.serialize(),"Continuación determinista de inmigración y mercaderes")

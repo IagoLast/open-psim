@@ -45,6 +45,7 @@ static func daily(sim: Variant) -> void:
 		if missing(sim,home,supplied_level,occupants).is_empty():
 			for resource: String in sim.definitions.housing.levels[supplied_level-1].goods:
 				sim.state.inventory[resource] -= sim.definitions.housing.levels[supplied_level-1].goods[resource]
+				sim.Economy.record_flow(sim,"consumption",resource,sim.definitions.housing.levels[supplied_level-1].goods[resource])
 		home.care_days = home.upgrade_days
 		rehouse(sim,home)
 

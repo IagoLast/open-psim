@@ -19,7 +19,9 @@ static func daily(sim: Variant) -> void:
 		var fire_cover: bool = water and protected_by(sim,item,"fire")
 		var maintenance: bool = protected_by(sim,item,"maintenance") and sim.state.inventory.wood > 0
 		if maintenance:
-			if item.condition < 100: sim.state.inventory.wood -= 1
+			if item.condition < 100:
+				sim.state.inventory.wood -= 1
+				sim.Economy.record_flow(sim,"consumption","wood",1)
 			item.condition = mini(100,item.condition+8)
 		elif item.age > sim.definitions.scenario.risk_grace_days:
 			item.condition = maxi(0,item.condition-(1 if item.connected else 3))

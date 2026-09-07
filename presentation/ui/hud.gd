@@ -13,6 +13,8 @@ const Folio = preload("res://presentation/ui/folio.gd")
 const RoadSurfaces = preload("res://sim/road_surfaces.gd")
 const MapView = preload("res://presentation/ui/minimap.gd")
 var resource_values: Dictionary = {}
+var resource_flows: Dictionary = {}
+var ledger_flows: Dictionary = {}
 var speed_buttons: Dictionary = {}
 var minimap: Control
 var header_panel: PanelContainer
@@ -389,7 +391,15 @@ func setup_header() -> void:
 		tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		first.add_child(tile)
 		_resource_icon(tile,resource,34)
-		resource_values[resource] = _label(tile,"0",21)
+		var amounts := VBoxContainer.new()
+		amounts.add_theme_constant_override("separation",-3)
+		amounts.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		tile.add_child(amounts)
+		resource_values[resource] = _label(amounts,"0",21)
+		if definitions.resources.has(resource):
+			resource_flows[resource] = _label(amounts,"+0 / −0",12)
+			resource_flows[resource].mouse_filter = Control.MOUSE_FILTER_PASS
+			resource_flows[resource].add_theme_color_override("font_color",ParchmentTheme.MUTED)
 		resource_values[resource].vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	var controls := HBoxContainer.new()
 	controls.custom_minimum_size.y = 32
@@ -655,7 +665,19 @@ func refresh(snapshot: Dictionary, speed: int) -> void:
 	resource_label.text = "%d / %d" % [Economy.food({"state":snapshot}),snapshot.citizens.size()*2]
 	reserve_bar.max_value = maxi(1,snapshot.citizens.size()*2)
 	reserve_bar.value = Economy.food({"state":snapshot})
+	var flow: Dictionary = snapshot.get("resource_flow",{})
+	var previous: Dictionary = flow.get("previous",{})
+	var period: Dictionary = previous if not previous.is_empty() else flow
 	for resource: String in definitions.resources:
+		var produced: int = period.get("production",{}).get(resource,0)
+		var consumed: int = period.get("consumption",{}).get(resource,0)
+		var detail: String = "%s\nProducción local: +%d\nConsumo interno: −%d\nIncluye talleres, vecinos, peregrinos y mantenimiento.\nExcluye comercio y construcción." % ["Último día registrado" if not previous.is_empty() else "Hoy (día en curso)",produced,consumed]
+		var flow_text: String = "+%d / −%d" % [produced,consumed]
+		ledger_flows[resource].text = flow_text
+		ledger_flows[resource].tooltip_text = detail
+		if resource_flows.has(resource):
+			resource_flows[resource].text = flow_text
+			resource_flows[resource].tooltip_text = detail
 		if resource_values.has(resource): resource_values[resource].text = str(snapshot.inventory[resource])
 		ledger_values[resource].text = str(snapshot.inventory[resource])
 	ledger_total.text = str(Economy.total(snapshot.inventory))
@@ -917,6 +939,9 @@ func setup_ledger() -> void:
 		entry.add_child(line)
 		_resource_icon(line,resource,30)
 		ledger_values[resource] = _label(line,"0",20)
+		ledger_flows[resource] = _label(entry,"+0 / −0",12)
+		ledger_flows[resource].mouse_filter = Control.MOUSE_FILTER_PASS
+		ledger_flows[resource].add_theme_color_override("font_color",ParchmentTheme.MUTED)
 		entry.get_parent().tooltip_text = definitions.resources[resource].label
 	var chains: VBoxContainer = _scroll_rows(pages[1])
 	var recipes := GridContainer.new()

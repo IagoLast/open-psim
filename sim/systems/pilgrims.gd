@@ -24,6 +24,7 @@ static func step(sim: Variant) -> void:
 					for resource: String in ["bread","grain","fish"]:
 						if sim.state.inventory[resource] > 0:
 							sim.state.inventory[resource] -= 1
+							sim.Economy.record_flow(sim,"consumption",resource,1)
 							break
 					p.served = true
 					sim.state.coins += 4

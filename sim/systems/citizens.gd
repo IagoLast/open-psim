@@ -111,6 +111,7 @@ static func daily(sim: Variant) -> void:
 			for resource: String in ["bread", "grain", "fish"]:
 				if sim.state.inventory[resource] > 0:
 					sim.state.inventory[resource] -= 1
+					sim.Economy.record_flow(sim,"consumption",resource,1)
 					citizen.fed = true
 					break
 		var target: int = 45 * int(citizen.fed) + 25 * int(citizen.water) + 10 * int(citizen.job != 0)
