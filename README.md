@@ -3,6 +3,12 @@
 Simulación de una villa portuaria hacia 1530, construida en Godot. Combina
 producción, abastecimiento y servicios urbanos con comercio marítimo.
 
+**[▶ Jugar en el navegador](https://open-psim.vercel.app/play/)** · Sin instalación.
+
+[![Una villa junto al río y el puente de piedra, rodeada de bosques](art/renders/landscape-village.png)](https://open-psim.vercel.app/play/)
+
+*Levanta tu villa a orillas de la ría: viviendas, caminos, producción y comercio.*
+
 La primera versión está conservada en el commit `dc5834d`. Esta ampliación incluye:
 
 - **Ría interior de 512×512**: las 262.144 casillas se concentran en el tramo
@@ -55,7 +61,9 @@ crecen de humilde a próspera y mercantil, con modelos y capacidades de 4, 6 y 8
 vecinos. Orientan la fachada al camino y detectan casas contiguas; el catálogo
 admite modelos específicos para medianeras. Hay nueve variantes Blender adicionales, tres por nivel: porches, anexos,
 escaleras, balcones, galerías y soportales. Se eligen de forma estable por casa.
-Las piezas específicas para medianeras quedan pendientes. [Ver las casas](art/renders/house-variants.png).
+Las piezas específicas para medianeras quedan pendientes.
+
+![Nueve variantes de viviendas: casas humildes, prósperas y mercantiles](art/renders/house-variants.png)
 
 **Comercio**, o **Comprar / vender** en la ficha del almacén, permite negociar
 con mercaderes sin construir un muelle. Si aún no hay almacén, el botón
@@ -112,13 +120,14 @@ conventual con patio. Ocupa 10×8 casillas (R gira la parcela) y cuesta 320 mone
 40 de madera y 80 de piedra. Ofrece culto hasta 48 pasos por caminos, tiene dos
 empleos y consume cinco monedas de mantenimiento diario. Necesita conexión al
 almacén y personal para activar el servicio. Está incluido en **Ciudad avanzada**.
-[Ver el modelo](art/renders/convent-design.png).
+![Modelo del convento de San Francisco, con rosetón, campanario y patio](art/renders/convent-design.png)
 
 Los edificios cívicos tienen arquitecturas diferenciadas: mercado de toldos,
 hospital con patio y soportales, capilla con ábside, torre de guardia octogonal,
 escuela de una planta con ventanas altas, torre abierta de vigías, taller de
 obras con andamios y hospedería de dos plantas con balcón sobre ménsulas.
-[Ver la colección](art/renders/civic-buildings-review.png).
+
+![Colección de edificios de servicios y puerto: mercado, hospital, capilla, muelle y convento](art/renders/civic-buildings-review.png)
 
 Al cargar una partida con el convento anterior de 6×5, el juego amplía su
 parcela. Si no cabe, busca una ubicación próxima con acceso por caminos, sin
