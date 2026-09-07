@@ -12,6 +12,7 @@ const CityPresets = preload("res://sim/city_presets.gd")
 var developer_tools := preload("res://sim/developer_tools.gd").new()
 var developer_console := preload("res://presentation/ui/developer_console.gd").new()
 var main_menu := MainMenu.new()
+var music := preload("res://presentation/music_player.gd").new()
 var has_started: bool = false
 var sim := Simulation.new()
 var runner := Runner.new()
@@ -28,6 +29,7 @@ var refresh_time: float = 0
 var web_probe := preload("res://adapters/web_probe.gd").new()
 
 func _ready() -> void:
+	add_child(music)
 	var definitions: Dictionary = Definitions.load_data()
 	if definitions.is_empty():
 		push_error("Datos de juego inválidos")
@@ -54,6 +56,8 @@ func _ready() -> void:
 	hud.map_navigate.connect(func(point: Vector3) -> void: world.focus = point; world.update_camera())
 	add_child(main_menu)
 	main_menu.setup()
+	main_menu.music_toggle.set_pressed_no_signal(music.enabled)
+	main_menu.music_toggled.connect(music.set_enabled)
 	main_menu.selected.connect(_menu_selected)
 	add_child(developer_console)
 	developer_console.setup(definitions)

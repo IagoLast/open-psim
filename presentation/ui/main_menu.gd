@@ -1,6 +1,7 @@
 extends CanvasLayer
 ## A single entry point for starting, resuming, and loading a town.
 signal selected(choice: String)
+signal music_toggled(enabled: bool)
 const ParchmentTheme = preload("res://presentation/ui/parchment_theme.gd")
 const Folio = preload("res://presentation/ui/folio.gd")
 var root: Control
@@ -8,6 +9,7 @@ var panel: PanelContainer
 var buttons: Dictionary = {}
 var message_label: Label
 var can_continue: bool = false
+var music_toggle: CheckButton
 
 func setup() -> void:
 	layer = 5
@@ -58,6 +60,11 @@ func setup() -> void:
 		button.pressed.connect(func() -> void: selected.emit(choice))
 		archive.add_child(button)
 		buttons[choice] = button
+	music_toggle = CheckButton.new()
+	music_toggle.text = "Música"
+	music_toggle.tooltip_text = "Activa o desactiva la banda sonora."
+	music_toggle.toggled.connect(func(enabled: bool) -> void: music_toggled.emit(enabled))
+	rows.add_child(music_toggle)
 	message_label = Folio.paragraph(rows,"",16)
 	message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	message_label.add_theme_color_override("font_color",ParchmentTheme.RUBRIC)
