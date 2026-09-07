@@ -1,0 +1,9 @@
+.tools/
+.godot/
+build/
+art/
+docs/
+tests/
+.codex/
+.env*
+**/__pycache__/

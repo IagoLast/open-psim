@@ -6,3 +6,5 @@ build/
 *.blend2
 __pycache__/
 .DS_Store
+.vercel
+.env*

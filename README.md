@@ -140,12 +140,33 @@ cupos, objetivos, cargas y rutas. Los valores de balance están en JSON y aún
 necesitan ajuste mediante partidas largas.
 
 
-Exportación web local:
+Exportación web estática (requiere Godot y sus plantillas de exportación Web
+de la misma versión):
 
 ```sh
-mkdir -p build/web
-.tools/Godot.app/Contents/MacOS/Godot --headless --path . --export-release Web build/web/index.html
+./build.sh
 ```
+
+El script importa los recursos y genera la versión release en `build/web/`.
+Detecta el Godot local de `.tools/` o `godot`/`godot4` en el PATH; también puedes
+elegirlo con `GODOT_BIN=/ruta/a/godot ./build.sh`.
+Si faltan las plantillas, instálalas desde **Editor → Administrar plantillas de
+exportación** en Godot y vuelve a ejecutar el build.
+
+Sube **todo el contenido** de `build/web/` a la carpeta pública `play/` para
+servir el juego en `https://www.tudominio.com/play/`. Conserva los nombres y
+sirve `index.html` como índice de esa carpeta. No necesita backend; las partidas
+se guardan en el navegador. La exportación usa un solo hilo, sin cabeceras de
+aislamiento especiales.
+
+En Vercel, `vercel.json` configura el build automáticamente con
+`bash tools/build_vercel.sh` y publica `build/site/`. El script descarga Godot
+4.7.2 para Linux (verificando su SHA-256), instala las plantillas Web de esa
+misma versión y ejecuta `build.sh`. El juego se sirve en `/play/` y la portada
+del dominio lleva a esa ruta. No hacen falta variables de entorno propias.
+El proyecto `iago-lastras-projects/open-psim` está conectado al repositorio:
+los cambios en `main` se despliegan a producción cuando esta configuración
+está incluida en el commit.
 
 Validación de simulación, interacción de la escena y recursos visuales:
 
