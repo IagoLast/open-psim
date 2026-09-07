@@ -56,7 +56,12 @@ vivienda con agua, puestos libres y reserva de comida. La ayuda inicial permite
 montar granja, leñadores, pesca y salazón; el almacén no necesita trabajadores.
 
 **Construir** abre el catálogo. **R** gira las parcelas rectangulares; la vista
-previa representa su ocupación real. Las viviendas conservan una parcela 2×2 y
+previa muestra el modelo 3D translúcido y su ocupación real, en verde o rojo según
+se pueda construir. Muelle, pesquería y salinas rellenan automáticamente el agua
+bajo su parcela si al menos la mitad se apoya en tierra y conservan un borde
+acuático. La vista previa indica las casillas de relleno, incluido en el precio;
+la plataforma permanece al demoler y se conserva en los guardados. Las rutas
+de barcos en uso quedan protegidas. Las viviendas conservan una parcela 2×2 y
 crecen de humilde a próspera y mercantil, con modelos y capacidades de 4, 6 y 8
 vecinos. Orientan la fachada al camino y detectan casas contiguas; el catálogo
 admite modelos específicos para medianeras. Hay nueve variantes Blender adicionales, tres por nivel: porches, anexos,
@@ -232,3 +237,8 @@ verse al salir. Un **punto verde** indica cuántos trabajadores hay dentro; un
 **punto ámbar** indica personal asignado que está fuera. Al pasar el ratón por
 el edificio se muestran presentes y asignados. Los indicadores se ocultan en
 la vista general para mantener el mapa despejado.
+
+Los almacenes y hórreos muestran pilas de cajas según su ocupación (incluidas
+las reservas de importación), y un aviso cuando se llenan. Las explotaciones
+sin salida al almacén o bloqueadas por falta de espacio muestran cajas y un
+aviso sobre el edificio, sin tener que seleccionarlo.

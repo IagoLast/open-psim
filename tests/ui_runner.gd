@@ -171,10 +171,20 @@ func run() -> void:
 	motion.position = point
 	root.push_input(motion,true)
 	await settle()
-	check(game.world.preview.get_child_count() == 12,"Vista previa rectangular de 12 casillas")
+	check(game.world.preview.get_child_count() == 13 and game.world.preview.has_node("BuildingPreview"),"Vista previa 3D con parcela rectangular de 12 casillas")
 	await click(point)
 	check(game.sim.state.buildings.size() == 1 and game.sim.building(1).rotation == 1,"Clic construye rectángulo girado")
 	check(game.sim.state.coins == 940,"Construcción cobra una sola vez")
+	var stored_inventory: Dictionary = game.sim.state.inventory.duplicate()
+	for resource: String in game.sim.state.inventory: game.sim.state.inventory[resource] = 0
+	game.sim.state.inventory.wood = game.sim.definitions.balance.inventory_capacity + game.sim.definitions.buildings.warehouse.get("storage",0)
+	var cargo_snapshot: Dictionary = game.sim.get_snapshot()
+	cargo_snapshot.buildings[0].connected = true
+	game.world.sync(cargo_snapshot,game.sim.definitions)
+	check(game.world.buildings[1].get_node("CargoWarning").text == "ALMACÉN LLENO" and game.world.buildings[1].get_meta("cargo_count") == 8,"Almacén lleno muestra carga y aviso sin seleccionar")
+	game.sim.state.inventory = stored_inventory
+	game.refresh()
+	check(game.world.buildings[1].get_node("CargoWarning").text.is_empty(),"El aviso desaparece al liberar espacio")
 	await press("Seleccionar")
 	game.hud.selected_building = 1
 	game.refresh()

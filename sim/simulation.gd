@@ -118,9 +118,22 @@ func terrain_error(kind: String, x: int, z: int, rotation: int = 0) -> String:
 	if x < 0 or z < 0 or x + size.x > width() or z + size.y > width(): return "Fuera del mapa"
 	for cell: int in footprint(kind, x, z, rotation):
 		if Map.BURGO_BRIDGE.has_point(Vector2i(cell%width(),cell/width())): return "El puente debe quedar libre para caminos"
-		if state.terrain[cell] == "water": return "Necesita tierra firme"
+		if state.terrain[cell] == "water" and not definitions.buildings[kind].get("coastal",false): return "Necesita tierra firme"
 		if definitions.buildings[kind].get("fertile",false) and state.terrain[cell] != "fertile": return "Terreno no fértil"
 	if definitions.buildings[kind].get("coastal",false):
+		var parcel: Array = footprint(kind,x,z,rotation)
+		var water_cells: Array = parcel.filter(func(cell: int) -> bool: return state.terrain[cell] == "water")
+		if water_cells.size()*2 > parcel.size(): return "Apoya al menos la mitad del edificio en tierra"
+		for existing: Dictionary in state.buildings:
+			if not definitions.buildings[existing.type].get("coastal",false): continue
+			var coast_cells: Array = edges(existing).filter(func(cell: int) -> bool: return state.terrain[cell] == "water")
+			if not coast_cells.is_empty() and coast_cells.all(func(cell: int) -> bool: return water_cells.has(cell)): return "Conserva el acceso al agua del edificio vecino"
+		for voyage: Dictionary in state.voyages:
+			for cell: int in water_cells:
+				if voyage.path.has(cell): return "Paso de barcos en uso"
+		if not state.merchant.is_empty():
+			for cell: int in water_cells:
+				if state.merchant.path.has(cell): return "Paso del mercader en uso"
 		var coast: bool = false
 		for cell: int in edges({"type":kind, "x":x, "z":z, "rotation":rotation}):
 			if state.terrain[cell] == "water": coast = true
@@ -153,7 +166,11 @@ func validate_command(command: Dictionary) -> Dictionary:
 			if state.inventory.wood < definition.wood: return result("Madera insuficiente")
 			for resource: String in definition.get("materials",{}):
 				if state.inventory[resource] < definition.materials[resource]: return result("Falta " + definitions.resources[resource].label)
-			return result("", definition.coins, definition.wood)
+			var checked: Dictionary = result("", definition.coins, definition.wood)
+			if definition.get("coastal",false):
+				var fill_count: int = footprint(kind,command.x,command.z,command.get("rotation",0)).filter(func(cell: int) -> bool: return state.terrain[cell] == "water").size()
+				if fill_count > 0: checked.message = "Relleno de ribera: %d casillas · incluido" % fill_count
+			return checked
 		"road":
 			if not command.get("cells") is Array or command.cells.is_empty(): return result("Tramo vacío")
 			var surface: Variant = command.get("surface","paved")
@@ -217,6 +234,12 @@ func apply_command(command: Dictionary) -> Dictionary:
 			state.coins -= checked.coins
 			state.inventory.wood -= checked.wood
 			for resource: String in definitions.buildings[command.kind].get("materials",{}): state.inventory[resource] -= definitions.buildings[command.kind].materials[resource]
+			if definitions.buildings[command.kind].get("coastal",false):
+				for cell: int in footprint(command.kind,command.x,command.z,command.get("rotation",0)):
+					if state.terrain[cell] == "water":
+						state.terrain[cell] = "land"
+						if not state.has("shoreline_fill"): state.shoreline_fill = []
+						state.shoreline_fill.append(cell)
 			_add_building(command.kind, command.x, command.z,command.get("rotation",0))
 			rebuild()
 		"road":

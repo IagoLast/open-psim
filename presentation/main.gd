@@ -91,6 +91,10 @@ func refresh() -> void:
 	world.sync(snapshot,sim.definitions)
 	_refresh_hud()
 	hover_cell = -2
+	if tool not in ["select","demolish"] and not _modal_open():
+		var motion := InputEventMouseMotion.new()
+		motion.position = get_viewport().get_mouse_position()
+		_unhandled_input(motion)
 
 func _refresh_hud() -> void:
 	hud.refresh(snapshot,runner.speed)
@@ -148,6 +152,9 @@ func _unhandled_input(event: InputEvent) -> void:
 					building_rotation = (building_rotation+1)%4
 					hover_cell = -2
 					hud.message_label.text = "Giro %d° · R para girar" % (building_rotation*90)
+					var motion := InputEventMouseMotion.new()
+					motion.position = get_viewport().get_mouse_position()
+					_unhandled_input(motion)
 			KEY_F3: hud.debug_label.visible = not hud.debug_label.visible
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_RIGHT and event.pressed: _select_tool("select")
@@ -179,7 +186,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		var cells: Array = road_segment(drag_start,cell) if RoadSurfaces.TOOLS.has(tool) and dragging else ([cell] if RoadSurfaces.TOOLS.has(tool) else sim.footprint(tool,cell%sim.width(),cell/sim.width(),building_rotation))
 		var order: Dictionary = {"type":"road","surface":RoadSurfaces.TOOLS[tool],"cells":cells} if RoadSurfaces.TOOLS.has(tool) else {"type":"build","kind":tool,"x":cell%sim.width(),"z":cell/sim.width(),"rotation":building_rotation}
 		var checked: Dictionary = sim.validate_command(order)
-		world.show_preview(cells,checked.ok)
+		world.show_preview(cells,checked.ok,tool if order.type == "build" else "",sim.definitions.buildings.get(tool,{}),building_rotation,sim.state.seed)
 		hud.show_build_cost(checked)
 
 func _input(event: InputEvent) -> void:

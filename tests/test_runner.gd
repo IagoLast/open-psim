@@ -107,6 +107,7 @@ func _initialize() -> void:
 	test_arrivals()
 	test_road_surfaces()
 	test_food_chains()
+	test_coastal_fill()
 	test_convent()
 	print("RESULTADO: %d correctas / %d fallidas" % [passed,failed])
 	quit(1 if failed else 0)
@@ -364,3 +365,24 @@ func test_objective() -> void:
 	sim.state.coins = 0
 	check(sim.apply_command({"type":"aid"}).ok and sim.state.coins == 250,"Ayuda de emergencia permite recuperación")
 	reject(sim,{"type":"aid"},"Ayuda no repetible")
+
+func test_coastal_fill() -> void:
+	var sim: Variant = fresh()
+	var x: int = 100
+	var z: int = 100
+	# Deliberately jagged bank: half of the 3×2 saltworks lies in water.
+	for dz: int in range(-1,4):
+		for dx: int in range(-1,5): sim.state.terrain[(z+dz)*sim.width()+x+dx] = "water" if dz >= 1 else "land"
+	var order: Dictionary = {"type":"build","kind":"saltworks","x":x,"z":z}
+	var before: Dictionary = sim.serialize()
+	check(sim.validate_command(order).ok and before == sim.serialize(),"Preview costera acepta ribera irregular sin modificar terreno")
+	check(sim.apply_command(order).ok,"Salinas rellenan media parcela automáticamente")
+	check(sim.state.get("shoreline_fill",[]).size() == 3 and sim.terrain_error("saltworks",x,z).is_empty(),"Relleno conserva un borde de agua operativo")
+	valid(sim,"Relleno costero se guarda con estado válido")
+	var restored: Variant = fresh()
+	restored.restore(sim.serialize())
+	check(restored.state.get("shoreline_fill",[]) == sim.state.shoreline_fill,"Relleno se conserva al cargar")
+	reject(sim,{"type":"build","kind":"saltworks","x":x,"z":z+2},"No se puede construir flotando en agua")
+	var inland: Variant = fresh()
+	inland.state.terrain[100*inland.width()+100] = "water"
+	reject(inland,{"type":"build","kind":"warehouse","x":100,"z":100},"Edificios terrestres no rellenan agua")

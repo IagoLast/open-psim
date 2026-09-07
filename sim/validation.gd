@@ -30,6 +30,11 @@ static func check(data: Dictionary, definitions: Dictionary) -> String:
 		if not key is String or not key.is_valid_int() or str(int(key)) != key or not roads.has(int(key)): return "Superficie sin camino"
 		if surfaces[key] not in ["paved","dirt"]: return "Superficie de camino inválida"
 		if surfaces[key] == "dirt" and Map.BURGO_BRIDGE.has_point(Vector2i(int(key)%Map.SIZE,int(key)/Map.SIZE)): return "Puente sin pavimento"
+	if not data.get("shoreline_fill",[]) is Array: return "Relleno costero inválido"
+	var filled: Dictionary = {}
+	for cell: Variant in data.get("shoreline_fill",[]):
+		if not cell is int or cell < 0 or cell >= Map.SIZE*Map.SIZE or data.terrain[cell] != "land" or filled.has(cell): return "Relleno costero inválido"
+		filled[cell] = true
 	var buildings: Dictionary = {}
 	for item: Variant in data.buildings:
 		if not item is Dictionary: return "Edificio inválido"

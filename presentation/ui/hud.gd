@@ -528,7 +528,7 @@ func show_build_cost(checked: Dictionary) -> void:
 		build_cost_signature = signature
 		for child: Node in build_costs.get_children(): child.free()
 		for resource: String in costs: cost_badge(build_costs,resource,costs[resource])
-	message_label.text = "" if checked.ok else checked.get("message","")
+	message_label.text = checked.get("message","")
 
 func clear_catalog() -> void:
 	for child: Node in catalog.get_children():
