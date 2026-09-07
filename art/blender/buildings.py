@@ -411,7 +411,67 @@ def saltery():
     shrub(-1.13,.68,scale=.8)
 
 
-BUILDERS={name:globals()[name] for name in ["house","house_cottage","house_tall","road","well","farm","lumber","fishery","saltery"]}
+def road_dirt():
+    """A continuous warm earth tile; non-overlapping compacted patches avoid z-fighting."""
+    from common import PALETTE, linear
+    for key, color in {"dirt_base":"9c7954","dirt_light":"a3815d","dirt_dark":"92704f"}.items():
+        PALETTE[key]=tuple(linear(int(color[i:i+2],16)/255) for i in (0,2,4))+(1,)
+    box("Packed earth road",(0,0,.023),(1,1,.046),"dirt_base",0)
+    rng=random.Random(1530)
+    for row in range(3):
+        for col in range(3):
+            x=(col-1)*.30+rng.uniform(-.025,.025)
+            y=(row-1)*.30+rng.uniform(-.025,.025)
+            r=rng.uniform(.06,.12)
+            cylinder("Compacted earth patch",(x,y,.046),r,.002,
+                     "dirt_dark" if (row+col)%3==0 else "dirt_light",vertices=7)
+    for i in range(10):
+        x=rng.uniform(-.45,.45); y=rng.uniform(-.45,.45)
+        sphere("Small embedded gravel",(x,y,.048),(.012,.016,.005),"stone_dark")
+
+
+def horreo():
+    """Raised Galician granary: stone feet and rat guards, ventilated timber chamber."""
+    plot(1.85,2.85)
+    for x in [-.53,.53]:
+        for y in [-.94,0,.94]:
+            box("Granite footing",(x,y,.13),(.38,.38,.20),"stone_dark",.025)
+            box("Granite pillar",(x,y,.48),(.21,.23,.62),"stone",.018)
+            cylinder("Wide stone rat guard",(x,y,.83),.27,.12,"stone_light",12)
+    box("Raised granite floor",(0,0,.96),(1.36,2.42,.16),"stone",.016)
+    for x in [-.59,.59]:
+        for y in [-1.11,0,1.11]:
+            box("Granite chamber upright",(x,y,1.49),(.14,.16,1.0),"stone",.01)
+        for z in [1.08,1.84]:
+            box("Oak side rail",(x,0,z),(.10,2.2,.09),"wood",.006)
+        for i in range(23):
+            y=-1.04+i*.094
+            box("Ventilated oak slat",(x,y,1.46),(.055,.066,.72),"wood_honey" if i%3 else "wood_light",.003)
+    for y in [-1.13,1.13]:
+        for i in range(11):
+            x=-.48+i*.096
+            box("Gable end timber",(x,y,1.46),(.072,.065,.76),"wood_light",.004)
+        box("Stone end lintel",(0,y,1.91),(1.32,.17,.14),"stone_light",.01)
+    for x in [-.25,.25]:
+        box("Granary door jamb",(x,-1.18,1.47),(.065,.065,.76),"wood",.004)
+    for z in [1.20,1.71]:
+        box("Door iron strap",(0,-1.222,z),(.48,.02,.03),"iron",.002)
+    cylinder("Door iron latch",(.15,-1.23,1.46),.034,.05,"iron",8).rotation_euler.x=math.pi/2
+    gable(0,0,1.98,1.30,2.36,.42)
+    roof(0,0,1.98,1.65,2.70,.47)
+    for y in [-1.22,1.22]:
+        box("Ridge finial foot",(0,y,2.49),(.15,.16,.12),"stone",.01)
+        if y < 0:
+            box("Granary stone cross",(0,y,2.68),(.065,.07,.34),"stone_light",.005)
+            box("Cross arms",(0,y,2.72),(.25,.07,.065),"stone_light",.005)
+        else:
+            cylinder("Granary stone pinnacle",(0,y,2.65),.075,.25,"stone_light",8)
+    # Detached stone steps leave the raised chamber visibly clear of the soil.
+    for i in range(3):
+        box("Detached access step",(0,-1.38+i*.07,.12+i*.13),(.47,.24,.18),"stone_dark",.01)
+
+
+BUILDERS={name:globals()[name] for name in ["house","house_cottage","house_tall","road","well","farm","lumber","fishery","saltery","horreo","road_dirt"]}
 if __name__=="__main__":
     requested=sys.argv[sys.argv.index("--")+1:] if "--" in sys.argv else list(BUILDERS)
     for name in requested:

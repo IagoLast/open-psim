@@ -4,8 +4,8 @@ const Models = preload("res://presentation/model_library.gd")
 const Assets = preload("res://presentation/asset_factory.gd")
 const FOOTPRINTS: Dictionary = {
 	"house": 2.0, "house_cottage": 2.0, "house_tall": 2.0,
-	"road": 1.0, "well": 1.0, "farm": 4.0, "lumber": 2.0,
-	"fishery": 2.0, "saltery": 2.0, "warehouse": 3.0,
+	"road": 1.0, "road_dirt": 1.0, "well": 1.0, "farm": 4.0, "lumber": 2.0,
+	"fishery": 2.0, "saltery": 2.0, "warehouse": 3.0, "horreo": 1.0,
 	"sailboat": 0.0, "rowboat": 0.0, "tree_oak": 0.0,
 	"tree_cypress": 0.0, "tree_pine": 0.0, "citizen": 0.0,
 	"bridge_stone": 0.0, "rock_cluster": 0.0, "grass_clump": 0.0,
@@ -17,6 +17,10 @@ var failures: int = 0
 var footprints: Dictionary = FOOTPRINTS.duplicate()
 
 func _initialize() -> void:
+	var definitions: Dictionary = preload("res://adapters/definitions.gd").load_data()
+	for kind: String in definitions.buildings:
+		var size: Array = definitions.buildings[kind].footprint
+		footprints[kind] = float(maxi(size[0],size[1]))
 	for kind: String in Models.Variants.catalog.models:
 		var family: String = Models.Variants.family(kind)
 		if not FOOTPRINTS.has(family):
@@ -31,8 +35,25 @@ func _initialize() -> void:
 	check_citizen()
 	check_house_variants()
 	check_variant_catalog()
+	check_building_catalog(definitions)
 	print("MODELS: ", footprints.size(), " checked; ", failures, " failures")
 	quit(1 if failures > 0 else 0)
+
+func check_building_catalog(definitions: Dictionary) -> void:
+	for kind: String in definitions.buildings:
+		var dimensions: Array = definitions.buildings[kind].footprint
+		for front: int in range(4):
+			var extent := Vector2(dimensions[0],dimensions[1])
+			var placed: Node3D = Assets.building(kind,extent,1,kind,1530,"1",{"front":front})
+			if placed.get_meta("placeholder",true): fail("PLACEHOLDER BUILDING " + kind)
+			var stats: Dictionary = {"meshes":0,"triangles":0,"boxes":[]}
+			collect(placed,Transform3D.IDENTITY,stats)
+			if not stats.boxes.is_empty():
+				var bound: AABB = merge_bounds(stats.boxes)
+				if bound.position.x < -0.001 or bound.position.z < -0.001 or bound.end.x > extent.x+0.001 or bound.end.z > extent.y+0.001:
+					fail("RECTANGULAR FOOTPRINT %s front %d: %s" % [kind,front,bound])
+			placed.free()
+	print("BUILDING CATALOGUE: ",definitions.buildings.size()," models; four facade orientations each")
 
 func check_model(kind: String) -> void:
 	var family: String = Models.Variants.family(kind)
@@ -120,7 +141,7 @@ func check_house_variants() -> void:
 	var seen: Dictionary = {}
 	for id: int in range(3):
 		if not ResourceLoader.exists("res://assets/models/%s.glb" % Assets.HOUSE_VARIANTS[id]): return
-		var building: Node3D = Assets.building("house", 2, id, "Vivienda")
+		var building: Node3D = Assets.building("house", 2, id, "Vivienda",1530,str(id),{"model_family":Assets.HOUSE_VARIANTS[id]})
 		var model: Node3D = building.get_node_or_null("Model") as Node3D
 		if model == null: fail("HOUSE VARIANT %d" % id)
 		else: seen[model.get_meta("model_kind")] = true

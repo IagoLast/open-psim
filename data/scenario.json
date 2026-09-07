@@ -1,0 +1,17 @@
+{
+  "title": "Consolida una villa portuaria",
+  "stability_population": 24,
+  "population": 40,
+  "prosperous_homes": 6,
+  "employment_percent": 80,
+  "reserve_days": 3,
+  "hold_days": 5,
+  "exports": 50,
+  "emigration_days": 8,
+  "arrival_grace_days": 4,
+  "risk_grace_days": 12,
+  "fire_threshold": 80,
+  "collapse_threshold": 20,
+  "recovery_days": 8,
+  "pilgrim_interval_days": 3
+}

@@ -1,6 +1,6 @@
 extends RefCounted
 
-static func neighbors(cell: int, width: int = 128) -> Array[int]:
+static func neighbors(cell: int, width: int = preload("res://sim/world_map.gd").SIZE) -> Array[int]:
 	var result: Array[int] = []
 	if cell >= width: result.append(cell - width)
 	if cell % width > 0: result.append(cell - 1)
@@ -8,7 +8,7 @@ static func neighbors(cell: int, width: int = 128) -> Array[int]:
 	if cell < width * (width - 1): result.append(cell + width)
 	return result
 
-static func distances(start: int, roads: Dictionary, width: int = 128) -> Dictionary:
+static func distances(start: int, roads: Dictionary, width: int = preload("res://sim/world_map.gd").SIZE) -> Dictionary:
 	if start < 0 or not roads.has(start): return {}
 	var found: Dictionary = {start: 0}
 	var queue: Array[int] = [start]
@@ -22,7 +22,7 @@ static func distances(start: int, roads: Dictionary, width: int = 128) -> Dictio
 				queue.append(next)
 	return found
 
-static func route(start: int, goal: int, roads: Dictionary, width: int = 128) -> Array:
+static func route(start: int, goal: int, roads: Dictionary, width: int = preload("res://sim/world_map.gd").SIZE) -> Array:
 	if start == goal: return []
 	if start < 0 or goal < 0: return []
 	var previous: Dictionary = {start: -1}

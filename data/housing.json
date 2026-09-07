@@ -1,0 +1,45 @@
+{
+  "upgrade_days": 3,
+  "downgrade_days": 2,
+  "levels": [
+    {
+      "label": "Humilde",
+      "capacity": 4,
+      "model": "house_cottage",
+      "services": [
+        "water"
+      ],
+      "goods": {}
+    },
+    {
+      "label": "Próspera",
+      "capacity": 6,
+      "model": "house",
+      "services": [
+        "water",
+        "market",
+        "health",
+        "faith"
+      ],
+      "goods": {}
+    },
+    {
+      "label": "Mercantil",
+      "capacity": 8,
+      "model": "house_tall",
+      "services": [
+        "water",
+        "market",
+        "health",
+        "faith",
+        "safety",
+        "education"
+      ],
+      "goods": {
+        "pottery": 1,
+        "cloth": 1,
+        "wine": 1
+      }
+    }
+  ]
+}

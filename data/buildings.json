@@ -1,17 +1,20 @@
 {
   "house": {
     "label": "Vivienda",
-    "size": 2,
     "coins": 30,
     "wood": 8,
     "jobs": 0,
     "capacity": 4,
     "requirement": "Tierra libre",
-    "category": "Viviendas"
+    "category": "Viviendas",
+    "footprint": [
+      2,
+      2
+    ],
+    "description": "Aloja a los vecinos de la villa. Mejora y admite más habitantes\nal mantener cubiertas sus necesidades de alimentos, bienes y servicios."
   },
   "well": {
     "label": "Pozo",
-    "size": 1,
     "coins": 20,
     "wood": 4,
     "jobs": 0,
@@ -19,11 +22,15 @@
     "category": "Servicios",
     "service": "water",
     "radius": 16,
-    "upkeep": 0
+    "upkeep": 0,
+    "footprint": [
+      1,
+      1
+    ],
+    "description": "Abastece de agua a las viviendas conectadas por caminos\ny permite que lleguen nuevos vecinos."
   },
   "farm": {
     "label": "Granja",
-    "size": 4,
     "coins": 60,
     "wood": 12,
     "jobs": 2,
@@ -34,11 +41,15 @@
     },
     "requirement": "Toda la huella sobre tierra fértil",
     "category": "Alimentos",
-    "fertile": true
+    "fertile": true,
+    "footprint": [
+      4,
+      4
+    ],
+    "description": "Cultiva cereal para alimentar a los vecinos\no transformarlo en harina en el molino."
   },
   "lumber": {
     "label": "Leñadores",
-    "size": 2,
     "coins": 40,
     "wood": 8,
     "jobs": 2,
@@ -48,11 +59,15 @@
       "wood": 8
     },
     "requirement": "Bosque a un máximo de 3 casillas de la huella",
-    "category": "Materiales"
+    "category": "Materiales",
+    "footprint": [
+      2,
+      2
+    ],
+    "description": "Obtiene madera de los bosques cercanos para construir,\nconservar edificios y abastecer talleres."
   },
   "fishery": {
     "label": "Pesquería",
-    "size": 2,
     "coins": 70,
     "wood": 12,
     "jobs": 2,
@@ -63,11 +78,31 @@
     },
     "requirement": "Un borde junto al agua",
     "category": "Alimentos",
-    "coastal": true
+    "coastal": true,
+    "footprint": [
+      2,
+      2
+    ],
+    "description": "Captura sardinas para alimentar a la villa\no preparar pescado en salazón."
+  },
+  "saltworks": {
+    "label": "Salinas",
+    "coins": 60,
+    "wood": 10,
+    "jobs": 1,
+    "work": 120,
+    "inputs": {},
+    "outputs": {
+      "salt": 4
+    },
+    "requirement": "Un borde junto al agua; conecta un camino al almacén",
+    "category": "Alimentos",
+    "coastal": true,
+    "footprint": [3, 2],
+    "description": "Obtiene sal por evaporación del agua en estanques costeros.\nAbastece los talleres de salazón sin depender del comercio."
   },
   "saltery": {
     "label": "Salazón",
-    "size": 2,
     "coins": 80,
     "wood": 12,
     "jobs": 2,
@@ -80,21 +115,29 @@
       "salted_fish": 3
     },
     "requirement": "Tierra libre; necesita sardina y sal",
-    "category": "Talleres"
+    "category": "Talleres",
+    "footprint": [
+      3,
+      2
+    ],
+    "description": "Conserva sardinas con sal para producir salazón,\nuna mercancía que puedes vender a los mercaderes o exportar."
   },
   "warehouse": {
     "label": "Almacén portuario",
-    "size": 3,
-    "coins": 0,
-    "wood": 0,
+    "coins": 60,
+    "wood": 12,
     "jobs": 0,
-    "requirement": "Edificio inicial protegido",
-    "category": "Puerto"
+    "requirement": "Conecta al camino principal; permite abastecer y producir",
+    "category": "Puerto",
+    "footprint": [
+      3,
+      4
+    ],
+    "description": "Permite abastecer viviendas y poner en marcha la producción\npor caminos. Desde su ficha puedes comprar y vender a mercaderes."
   },
   "quarry": {
     "label": "Cantera",
     "category": "Materiales",
-    "size": 2,
     "coins": 70,
     "wood": 12,
     "jobs": 2,
@@ -104,12 +147,16 @@
       "stone": 8
     },
     "requirement": "Yacimiento de granito a un máximo de 3 casillas",
-    "deposit": "rock"
+    "deposit": "rock",
+    "footprint": [
+      2,
+      2
+    ],
+    "description": "Extrae granito de los yacimientos cercanos\npara construir edificios que necesitan piedra."
   },
   "claypit": {
     "label": "Barrera",
     "category": "Materiales",
-    "size": 2,
     "coins": 50,
     "wood": 8,
     "jobs": 1,
@@ -119,12 +166,16 @@
       "clay": 6
     },
     "requirement": "Yacimiento de arcilla a un máximo de 3 casillas",
-    "deposit": "clay"
+    "deposit": "clay",
+    "footprint": [
+      2,
+      2
+    ],
+    "description": "Extrae arcilla de los yacimientos cercanos\npara fabricar cerámica en el alfar."
   },
   "mine": {
     "label": "Mina de hierro",
     "category": "Materiales",
-    "size": 2,
     "coins": 100,
     "wood": 16,
     "jobs": 2,
@@ -137,12 +188,16 @@
     "deposit": "ore",
     "materials": {
       "stone": 8
-    }
+    },
+    "footprint": [
+      2,
+      2
+    ],
+    "description": "Extrae hierro de los yacimientos cercanos\npara fabricar herramientas en la herrería."
   },
   "sheep": {
     "label": "Pastos de ovejas",
     "category": "Alimentos",
-    "size": 3,
     "coins": 65,
     "wood": 10,
     "jobs": 1,
@@ -151,12 +206,16 @@
     "outputs": {
       "wool": 6
     },
-    "requirement": "Tierra libre; conecta un camino al almacén"
+    "requirement": "Tierra libre; conecta un camino al almacén",
+    "footprint": [
+      3,
+      3
+    ],
+    "description": "Cría ovejas para obtener lana\nque el tejedor transforma en paños."
   },
   "vineyard": {
     "label": "Viñedo",
     "category": "Alimentos",
-    "size": 3,
     "coins": 70,
     "wood": 12,
     "jobs": 2,
@@ -166,12 +225,16 @@
       "grapes": 10
     },
     "requirement": "Toda la huella sobre terreno fértil; uva para elaborar vino",
-    "fertile": true
+    "fertile": true,
+    "footprint": [
+      3,
+      3
+    ],
+    "description": "Cultiva uvas que la bodega transforma en vino."
   },
   "mill": {
     "label": "Molino",
     "category": "Talleres",
-    "size": 2,
     "coins": 60,
     "wood": 10,
     "jobs": 1,
@@ -182,12 +245,16 @@
     "outputs": {
       "flour": 6
     },
-    "requirement": "Tierra libre; conecta un camino al almacén"
+    "requirement": "Tierra libre; conecta un camino al almacén",
+    "footprint": [
+      2,
+      3
+    ],
+    "description": "Muele cereal y lo convierte en harina\npara abastecer al horno."
   },
   "bakery": {
     "label": "Horno",
     "category": "Talleres",
-    "size": 2,
     "coins": 65,
     "wood": 10,
     "jobs": 1,
@@ -199,12 +266,16 @@
     "outputs": {
       "bread": 9
     },
-    "requirement": "Tierra libre; conecta un camino al almacén"
+    "requirement": "Tierra libre; conecta un camino al almacén",
+    "footprint": [
+      2,
+      3
+    ],
+    "description": "Hornea pan con harina y madera\npara alimentar a los vecinos."
   },
   "winery": {
     "label": "Bodega",
     "category": "Talleres",
-    "size": 2,
     "coins": 90,
     "wood": 14,
     "jobs": 2,
@@ -215,12 +286,16 @@
     "outputs": {
       "wine": 4
     },
-    "requirement": "Tierra libre; conecta un camino al almacén"
+    "requirement": "Tierra libre; conecta un camino al almacén",
+    "footprint": [
+      3,
+      2
+    ],
+    "description": "Transforma uvas en vino para abastecer\na las viviendas o venderlo mediante el comercio."
   },
   "potter": {
     "label": "Alfar",
     "category": "Talleres",
-    "size": 2,
     "coins": 70,
     "wood": 10,
     "jobs": 1,
@@ -232,12 +307,16 @@
     "outputs": {
       "pottery": 4
     },
-    "requirement": "Tierra libre; conecta un camino al almacén"
+    "requirement": "Tierra libre; conecta un camino al almacén",
+    "footprint": [
+      2,
+      2
+    ],
+    "description": "Cuece arcilla con madera y produce cerámica\npara las viviendas o el comercio."
   },
   "smith": {
     "label": "Herrería",
     "category": "Talleres",
-    "size": 2,
     "coins": 100,
     "wood": 14,
     "jobs": 2,
@@ -252,12 +331,16 @@
     "requirement": "Tierra libre; conecta un camino al almacén",
     "materials": {
       "stone": 10
-    }
+    },
+    "footprint": [
+      2,
+      3
+    ],
+    "description": "Trabaja hierro con madera y produce herramientas\nque puedes vender mediante el comercio."
   },
   "weaver": {
     "label": "Tejedor",
     "category": "Talleres",
-    "size": 2,
     "coins": 80,
     "wood": 12,
     "jobs": 1,
@@ -268,12 +351,16 @@
     "outputs": {
       "cloth": 3
     },
-    "requirement": "Tierra libre; conecta un camino al almacén"
+    "requirement": "Tierra libre; conecta un camino al almacén",
+    "footprint": [
+      2,
+      3
+    ],
+    "description": "Transforma lana en paños\npara las viviendas o el comercio."
   },
   "market": {
     "label": "Mercado",
     "category": "Servicios",
-    "size": 2,
     "coins": 65,
     "wood": 10,
     "jobs": 1,
@@ -284,12 +371,16 @@
     "service": "market",
     "radius": 24,
     "upkeep": 2,
-    "materials": {}
+    "materials": {},
+    "footprint": [
+      3,
+      3
+    ],
+    "description": "Da cobertura de mercado a las viviendas: mejora la felicidad\ny ayuda a cumplir los requisitos de evolución residencial."
   },
   "clinic": {
     "label": "Hospital",
     "category": "Servicios",
-    "size": 2,
     "coins": 90,
     "wood": 10,
     "jobs": 1,
@@ -302,12 +393,16 @@
     "upkeep": 3,
     "materials": {
       "stone": 6
-    }
+    },
+    "footprint": [
+      3,
+      4
+    ],
+    "description": "Da cobertura de salud a las viviendas: mejora la felicidad\ny ayuda a cumplir los requisitos de evolución residencial."
   },
   "chapel": {
     "label": "Capilla",
     "category": "Servicios",
-    "size": 2,
     "coins": 80,
     "wood": 10,
     "jobs": 1,
@@ -320,12 +415,16 @@
     "upkeep": 2,
     "materials": {
       "stone": 6
-    }
+    },
+    "footprint": [
+      2,
+      3
+    ],
+    "description": "Atiende las necesidades de culto de las viviendas,\nmejorando la felicidad y favoreciendo su evolución."
   },
   "watch": {
     "label": "Guardia",
     "category": "Servicios",
-    "size": 2,
     "coins": 75,
     "wood": 10,
     "jobs": 1,
@@ -338,12 +437,16 @@
     "upkeep": 2,
     "materials": {
       "stone": 6
-    }
+    },
+    "footprint": [
+      2,
+      2
+    ],
+    "description": "Da cobertura de seguridad a las viviendas,\nmejorando la felicidad y favoreciendo su evolución."
   },
   "school": {
     "label": "Escuela",
     "category": "Servicios",
-    "size": 2,
     "coins": 110,
     "wood": 10,
     "jobs": 1,
@@ -356,12 +459,16 @@
     "upkeep": 3,
     "materials": {
       "stone": 6
-    }
+    },
+    "footprint": [
+      2,
+      3
+    ],
+    "description": "Da cobertura de educación a las viviendas,\nmejorando la felicidad y favoreciendo su evolución."
   },
   "dock": {
     "label": "Muelle comercial",
     "category": "Puerto",
-    "size": 2,
     "coins": 110,
     "wood": 20,
     "jobs": 0,
@@ -372,12 +479,16 @@
     "coastal": true,
     "materials": {
       "stone": 10
-    }
+    },
+    "footprint": [
+      3,
+      2
+    ],
+    "description": "Habilita una nave para importar y exportar mercancías\nmediante rutas propias con otros puertos."
   },
   "depot": {
     "label": "Depósito",
     "category": "Puerto",
-    "size": 2,
     "coins": 70,
     "wood": 16,
     "jobs": 0,
@@ -388,6 +499,103 @@
     "storage": 800,
     "materials": {
       "stone": 8
-    }
+    },
+    "footprint": [
+      3,
+      3
+    ],
+    "description": "Amplía la capacidad de almacenamiento de la villa\ncuando está conectado al almacén."
+  },
+  "firewatch": {
+    "label": "Vigías del fuego",
+    "category": "Servicios",
+    "footprint": [
+      2,
+      3
+    ],
+    "coins": 70,
+    "wood": 10,
+    "jobs": 1,
+    "work": 0,
+    "inputs": {},
+    "outputs": {},
+    "requirement": "Previene incendios: requiere agua, personal y mantenimiento",
+    "service": "fire",
+    "radius": 28,
+    "upkeep": 2,
+    "description": "Previene y extingue incendios en los edificios\ndentro de su cobertura, con agua y personal disponibles."
+  },
+  "maintenance": {
+    "label": "Maestros de obras",
+    "category": "Servicios",
+    "footprint": [
+      2,
+      3
+    ],
+    "coins": 70,
+    "wood": 10,
+    "jobs": 1,
+    "work": 0,
+    "inputs": {},
+    "outputs": {},
+    "requirement": "Conserva edificios: necesita madera, personal y mantenimiento",
+    "service": "maintenance",
+    "radius": 28,
+    "upkeep": 2,
+    "description": "Conserva los edificios de su zona usando madera\npara evitar que el deterioro acabe convirtiéndolos en ruinas."
+  },
+  "inn": {
+    "label": "Hospedería",
+    "category": "Servicios",
+    "footprint": [
+      2,
+      3
+    ],
+    "coins": 70,
+    "wood": 10,
+    "jobs": 1,
+    "work": 0,
+    "inputs": {},
+    "outputs": {},
+    "requirement": "Cuatro camas para peregrinos; protege la reserva de los vecinos",
+    "service": "hospitality",
+    "radius": 28,
+    "upkeep": 2,
+    "beds": 4,
+    "description": "Aloja y alimenta a peregrinos para obtener ingresos y reputación,\nrespetando la reserva de comida de los vecinos."
+  },
+  "convent": {
+    "label": "Convento",
+    "description": "Atiende las necesidades de culto de un barrio amplio.\nInspirado en el Convento de San Francisco de Pontevedra.",
+    "category": "Servicios",
+    "coins": 320,
+    "wood": 40,
+    "materials": {"stone": 80},
+    "jobs": 2,
+    "work": 0,
+    "inputs": {},
+    "outputs": {},
+    "service": "faith",
+    "radius": 48,
+    "upkeep": 5,
+    "footprint": [10, 8],
+    "requirement": "Culto: alcance 48 pasos por caminos; 2 empleos; mantenimiento 5 monedas/día"
+  },
+  "horreo": {
+    "label": "Hórreo",
+    "description": "Guarda maíz y otros cereales, harina y pan en una cámara\nelevada y ventilada. Libera espacio en el almacén general.",
+    "category": "Alimentos",
+    "coins": 45,
+    "wood": 12,
+    "jobs": 0,
+    "food_storage": 400,
+    "materials": {
+      "stone": 6
+    },
+    "footprint": [
+      1,
+      1
+    ],
+    "requirement": "Conecta un camino al almacén. Reserva exclusiva para cereal, harina y pan."
   }
 }

@@ -1,6 +1,6 @@
 {
-  "version": 2,
-  "map_size": 128,
+  "version": 3,
+  "map_size": 512,
   "ticks_per_day": 300,
   "ticks_per_second": 5,
   "departure": 25,
@@ -9,7 +9,7 @@
   "inventory_capacity": 1200,
   "water_distance": 16,
   "reserve_days": 2,
-  "immigration_days": 2,
+  "immigration_days": 1,
   "immigration_count": 2,
   "satisfaction_min": 60,
   "coins": 1000,

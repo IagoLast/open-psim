@@ -1,4 +1,31 @@
 extends RefCounted
+const GRANARY_FOODS: Array[String] = ["grain","flour","bread"]
+
+static func granary_stock(inventory: Dictionary) -> int:
+	var amount: int = 0
+	for resource: String in GRANARY_FOODS: amount += inventory.get(resource,0)
+	return amount
+
+static func storage_fits(inventory: Dictionary, buildings: Array, definitions: Dictionary, voyages: Array, physical: bool = false, excluded: int = 0) -> bool:
+	var general: int = definitions.balance.inventory_capacity
+	var granaries: int = 0
+	for item: Dictionary in buildings:
+		if item.id == excluded or (not physical and not item.connected): continue
+		var d: Dictionary = definitions.buildings[item.type]
+		general += d.get("storage",0)
+		granaries += d.get("food_storage",0)
+	var stocked: Dictionary = inventory.duplicate()
+	for voyage: Dictionary in voyages:
+		if voyage.direction == "buy": stocked[voyage.resource] += voyage.quantity
+	return total(stocked)-mini(granary_stock(stocked),granaries) <= general
+
+static func can_store(sim: Variant, inventory: Dictionary, physical: bool = false, excluded: int = 0) -> bool:
+	return storage_fits(inventory,sim.state.buildings,sim.definitions,sim.state.voyages,physical,excluded)
+
+static func has_room(sim: Variant, resource: String, quantity: int) -> bool:
+	var inventory: Dictionary = sim.state.inventory.duplicate()
+	inventory[resource] += quantity
+	return can_store(sim,inventory)
 
 static func total(inventory: Dictionary) -> int:
 	var count: int = 0
@@ -32,7 +59,10 @@ static func recipe_error(sim: Variant, definition: Dictionary) -> String:
 	if definition.inputs.has("fish") and not definition.outputs.has("bread"):
 		if food(sim) - definition.inputs.fish < sim.state.citizens.size() * sim.definitions.balance.reserve_days:
 			return "Reserva alimentaria protegida"
-	if total(sim.state.inventory) - total(definition.inputs) + total(definition.outputs) + reserved(sim) > capacity(sim):
+	var inventory: Dictionary = sim.state.inventory.duplicate()
+	for resource: String in definition.inputs: inventory[resource] -= definition.inputs[resource]
+	for resource: String in definition.outputs: inventory[resource] += definition.outputs[resource]
+	if not can_store(sim,inventory):
 		return "Almacén lleno"
 	return ""
 
@@ -43,7 +73,7 @@ static func produce(sim: Variant) -> void:
 		var block: String = ""
 		if not item.active: block = "Desactivado"
 		elif not item.connected: block = "Sin camino al almacén"
-		elif not sim.terrain_error(item.type, item.x, item.z).is_empty(): block = sim.terrain_error(item.type, item.x, item.z)
+		elif not sim.terrain_error(item.type, item.x, item.z,item.rotation).is_empty(): block = sim.terrain_error(item.type, item.x, item.z,item.rotation)
 		elif item.assigned == 0: block = "0/%d trabajadores" % definition.jobs
 		elif item.present == 0: block = "Trabajadores de camino" if sim.state.tick % sim.definitions.balance.ticks_per_day < sim.definitions.balance["return"] else "Jornada terminada"
 		else: block = recipe_error(sim, definition)

@@ -11,10 +11,14 @@ if [[ -z "${BLENDER_BIN:-}" ]]; then
     exit 1
   fi
 fi
-for group in buildings environment landscape resources categories; do
+for group in buildings production_buildings civic_buildings convent environment landscape resources categories; do
   "$BLENDER_BIN" --background --threads 4 --python-exit-code 1 --python "art/blender/$group.py"
 done
 "$BLENDER_BIN" --background --threads 4 --python-exit-code 1 --python art/blender/variants.py
 "$BLENDER_BIN" --background --threads 4 --python-exit-code 1 --python art/blender/variants.py -- --check
+"$BLENDER_BIN" --background --threads 4 --python-exit-code 1 --python art/blender/house_variants.py
+python3 tools/build_house_sheet.py
+python3 tools/build_civic_sheet.py
+python3 tools/build_production_sheet.py
 python3 tools/build_asset_sheet.py
 python3 tools/build_variant_sheet.py

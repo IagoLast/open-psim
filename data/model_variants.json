@@ -33,13 +33,22 @@
       "bridge_stone_v1530_02"
     ],
     "house": [
-      "house"
+      "house",
+      "house_stairs",
+      "house_balcony",
+      "house_annex"
     ],
     "house_cottage": [
-      "house_cottage"
+      "house_cottage",
+      "house_cottage_long",
+      "house_cottage_porch",
+      "house_cottage_annex"
     ],
     "house_tall": [
-      "house_tall"
+      "house_tall",
+      "house_tall_gallery",
+      "house_tall_arcade",
+      "house_tall_veranda"
     ]
   },
   "models": {
@@ -192,6 +201,69 @@
         "moss": 0.2
       },
       "geometry_digest": "a36bc6e18249c0529af7d03bd1f7e41553efed80a2dcf1a48c00f82e7b3de237"
+    },
+    "house_cottage_long": {
+      "family": "house_cottage",
+      "style": "long",
+      "label": "Casa de labranza",
+      "generator": "art/blender/house_variants.py",
+      "geometry_digest": "808ac19f9f48ce8acbb454abfdcb9a6cd8f20746cbc50aaaf585149d7b034c40"
+    },
+    "house_cottage_porch": {
+      "family": "house_cottage",
+      "style": "porch",
+      "label": "Casita con porche",
+      "generator": "art/blender/house_variants.py",
+      "geometry_digest": "e25a36b757d00c906d98e12aec43e57035d18b723c1d7adb365aa74feca34aec"
+    },
+    "house_cottage_annex": {
+      "family": "house_cottage",
+      "style": "annex",
+      "label": "Casita con anexo",
+      "generator": "art/blender/house_variants.py",
+      "geometry_digest": "c96d9387ddd2149a475e29d5009963daabcf3835e7cdf91de53cff0d4873f0a8"
+    },
+    "house_stairs": {
+      "family": "house",
+      "style": "stairs",
+      "label": "Casa con patín",
+      "generator": "art/blender/house_variants.py",
+      "geometry_digest": "a5f065ead85471457f0bf3b6b36179bb3b7c45760138e7b3a0dc539432d8033b"
+    },
+    "house_balcony": {
+      "family": "house",
+      "style": "balcony",
+      "label": "Casa con balcón",
+      "generator": "art/blender/house_variants.py",
+      "geometry_digest": "ab89028692ad7bc6faf54f66b785c76ee081b269cb68a8bac1277c6e523e4038"
+    },
+    "house_annex": {
+      "family": "house",
+      "style": "annex",
+      "label": "Casa con cobertizo",
+      "generator": "art/blender/house_variants.py",
+      "geometry_digest": "9d83469cb00d30a38fce21a6496b282f446491d50ad70067aab64991aa39c590"
+    },
+    "house_tall_gallery": {
+      "family": "house_tall",
+      "style": "gallery",
+      "label": "Galería acristalada",
+      "generator": "art/blender/house_variants.py",
+      "geometry_digest": "54e6cfde04e246a48e28a5d65a44c5047a3927600a5aca45700d6ec0da137c27"
+    },
+    "house_tall_arcade": {
+      "family": "house_tall",
+      "style": "arcade",
+      "label": "Casa de soportales",
+      "generator": "art/blender/house_variants.py",
+      "geometry_digest": "1228a4a6f8daeacb8a5f43468ef6f0804b1ea8c19ec364f870cba7c2f7bafd0b"
+    },
+    "house_tall_veranda": {
+      "family": "house_tall",
+      "style": "veranda",
+      "label": "Galería abierta",
+      "generator": "art/blender/house_variants.py",
+      "geometry_digest": "9d7189fa16f142b93754fc78df32349c4b1d23d2f822a6e506b55a370aadf1ec"
     }
   }
 }

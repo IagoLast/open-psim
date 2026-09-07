@@ -88,14 +88,13 @@ static func create() -> Theme:
 	theme.set_stylebox("panel","FolioHeading",masthead)
 	theme.set_type_variation("LedgerInset","PanelContainer")
 	var leaf := StyleBoxFlat.new()
-	leaf.bg_color = Color("#decca5")
-	leaf.border_color = GOLD
-	leaf.border_width_bottom = 1
-	leaf.border_width_left = 2
-	leaf.content_margin_left = 7
-	leaf.content_margin_right = 7
-	leaf.content_margin_top = 4
-	leaf.content_margin_bottom = 4
+	leaf.bg_color = Color("#efdfbb")
+	leaf.set_border_width_all(0)
+	leaf.set_corner_radius_all(3)
+	leaf.content_margin_left = 10
+	leaf.content_margin_right = 10
+	leaf.content_margin_top = 8
+	leaf.content_margin_bottom = 8
 	theme.set_stylebox("panel","LedgerInset",leaf)
 	theme.set_type_variation("PrimaryButton","Button")
 	theme.set_stylebox("normal","PrimaryButton",button_style(RUBRIC,GOLD))

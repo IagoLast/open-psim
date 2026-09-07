@@ -6,12 +6,14 @@ const ICONS: Array[String] = [
 	"category_housing", "category_services", "category_food", "category_materials",
 	"select", "demolish"
 ]
-const BUILDINGS: Array[String] = ["house", "road", "well", "farm", "lumber", "fishery", "saltery"]
+const BUILDINGS: Array[String] = ["house", "road", "road_dirt", "well", "farm", "lumber", "fishery", "saltery", "horreo"]
 const COLLECTION: Array[String] = ["house_cottage", "house_tall", "warehouse", "sailboat", "rowboat", "tree_oak", "tree_cypress", "citizen", "tree_pine", "bridge_stone", "rock_cluster", "grass_clump", "wildflowers", "reeds", "gorse"]
 
 func _initialize() -> void:
 	var failures: int = 0
 	var names: Array[String] = ICONS + BUILDINGS + COLLECTION
+	for kind: String in preload("res://adapters/definitions.gd").load_data().buildings:
+		if not names.has(kind): names.append(kind)
 	for kind: String in Variants.catalog.models: names.append(kind)
 	for file_name: String in DirAccess.get_files_at("res://assets/ui"):
 		if file_name.get_extension() == "png" and file_name.get_basename() not in names:

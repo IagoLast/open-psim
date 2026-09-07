@@ -9,8 +9,16 @@ la misma geometría. No hay modelos alternativos ni iconos vectoriales de reserv
 - `blender/common.py`: paleta sRGB, geometría plana, cámara ortográfica,
   iluminación neutra suave, sombras transparentes y exportación.
 - `blender/buildings.py`: casa pequeña, porche, balcón, pozo, camino, campo de maíz,
-  leñadores, pesquería y salazón.
+  leñadores, pesquería, salazón, hórreo gallego elevado y caminos de tierra.
 - `blender/environment.py`: almacén, dos barcos, dos árboles y vecino animable.
+- `blender/production_buildings.py`: salinas, cantera, barrera, mina, pastos,
+  viñedo, molino, horno, bodega, alfar, herrería y tejedor.
+- `blender/civic_buildings.py`: mercado, hospital, capilla, guardia, escuela,
+  muelle, depósito, vigías del fuego, maestros de obras y hospedería.
+  Los ocho servicios usan siluetas propias: toldos, patios, ábside, torre
+  octogonal, aula longitudinal, torre de madera, andamios y posada con balcón.
+- `blender/convent.py`: convento inspirado en las fotografías aportadas de San
+  Francisco de Pontevedra, con rosetón calado, campanario y patio conventual.
 - `blender/landscape.py`: puente de granito con cuatro arcos, pino de copa abierta,
   rocas con musgo, hierba, flores de pradera, juncos y tojo.
 - `blender/resources.py`: ocho recursos e indicadores.
@@ -22,6 +30,9 @@ la misma geometría. No hay modelos alternativos ni iconos vectoriales de reserv
 - `../assets/ui/*.png`: renders RGBA, 256 px para iconos y 512 px para modelos.
 - `renders/ui-collection.png`: lámina completa de revisión.
 - `renders/architecture-review.png`: seis edificios ampliados sobre el fondo del prompt.
+- `renders/production-buildings.png`: los doce edificios de producción añadidos.
+- `renders/civic-buildings-review.png`: once edificios de servicios y puerto.
+- `renders/convent-design.png` y `renders/convent-godot.png`: convento aislado y en juego.
 - `renders/*-design.png`: modelos aislados sobre crema sólido, listos para revisar.
 - `renders/readability-64.png`: siluetas a 64 × 64 píxeles.
 - `renders/in-game-review.png`: captura de comprobación de los GLB importados en Godot.
@@ -79,7 +90,7 @@ MultiMesh; se ejecuta sin `--headless`. Las cinco vistas de revisión quedan en
 [`variants.json`](variants.json) define la semilla de autoría, el número de
 variantes y amplitudes pequeñas por familia. El catálogo entregado añade **dos
 variantes** a cada roble, ciprés, pino, grupo de rocas, tojo y puente: 12 modelos
-nuevos, 42 GLB y 48 miniaturas en total. Los nombres canónicos siguen presentes.
+de paisaje adicionales. Las nueve variantes de vivienda se documentan más abajo. Los nombres canónicos siguen presentes.
 Comparación: [`renders/model-variants.png`](renders/model-variants.png).
 
 ```sh
@@ -126,12 +137,43 @@ La piedra usa la paleta compartida arena/gris beige de `common.py`, siguiendo la
 foto de Pontevedra en `docs/references/pontevedra-stone-reference.png`; el musgo
 aporta verde solo en zonas concretas.
 
-Las viviendas mantienen `house`, `house_cottage` y `house_tall` y la selección de
-silueta existente por identidad. `house_details` configura una extensión optativa
-que cambia solo caras de acabado ya existentes, sin tocar huecos, cubierta ni
-base. Para generarla, usar `--assets house house_cottage house_tall`; no se
-generan variantes de vivienda por defecto. Cualquier detalle futuro debe pasar
-la misma comprobación de geometría/huella.
+Las viviendas tienen **nueve variantes de silueta**, tres por nivel, además de
+los canónicos `house_cottage`, `house` y `house_tall`. Se crean con
+[`blender/house_variants.py`](blender/house_variants.py), también ejecutable desde
+el MCP de Blender. Cada receta produce piezas editables, GLB unido y PNG de
+512 px; se registra en el mismo manifiesto y usa la selección estable existente.
+
+| Nivel | Nuevas siluetas |
+|---|---|
+| Humilde | Casa de labranza, porche de teja, anexo bajo |
+| Próspera | Patín de piedra, balcón, cobertizo lateral |
+| Mercantil | Galería acristalada, dos soportales abiertos, galería sobre pilares |
+
+Referencia visual: [lámina aportada por el usuario](../docs/references/house-variants-reference.png). Se conservan granito
+cálido, terracota, madera mate, frente −Y y base de 2,4 × 2,4 m ajustada de forma
+uniforme a la parcela 2×2. Cambian cubierta, volumen y accesorios; los costes,
+capacidades y requisitos siguen determinados por el nivel. Los soportales tienen
+huecos geométricos y las escaleras llegan al umbral elevado.
+
+[Lámina Blender](renders/house-variants.png) ·
+[Modelos importados en Godot](renders/house-variants-godot.png) ·
+[Escena editable con nueve colecciones](blender/house_variants_review.blend).
+
+```sh
+/Applications/Blender.app/Contents/MacOS/Blender --background --threads 4 --python-exit-code 1 --python art/blender/house_variants.py
+/Applications/Blender.app/Contents/MacOS/Blender --background --threads 4 --python-exit-code 1 --python art/blender/house_variants.py -- --check
+python3 tools/build_house_sheet.py
+.tools/Godot.app/Contents/MacOS/Godot --headless --path . --editor --import
+.tools/Godot.app/Contents/MacOS/Godot --path . --script tools/review_houses.gd
+```
+
+En el MCP: `import house_variants; house_variants.start_mcp_queue()` genera y
+renderiza por turnos; `house_variants.review_scene()` reúne los `.blend` ya
+creados. `build(nombre)` crea una sola variante. `--check` verifica repetibilidad
+y límites de parcela. `tools/render_assets.sh` regenera también estas casas.
+La opción anterior `variants.py --assets house ...` sigue disponible para
+experimentar solo con acabados; usar `--output-root` para conservar el catálogo
+activo de siluetas. El inventario conserva modelos anteriores sin borrar archivos.
 
 En Godot, `ModelLibrary.create_variant(familia, semilla_partida, identidad)` y
 `ModelVariants.choose(...)` seleccionan recursos compartidos del catálogo. Las

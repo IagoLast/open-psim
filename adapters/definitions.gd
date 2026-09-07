@@ -2,7 +2,7 @@ extends RefCounted
 
 static func load_data() -> Dictionary:
 	var result: Dictionary = {}
-	for key: String in ["buildings", "resources", "balance", "history", "ports"]:
+	for key: String in ["buildings", "resources", "balance", "history", "ports", "housing", "scenario"]:
 		var file := FileAccess.open("res://data/%s.json" % key, FileAccess.READ)
 		if file == null:
 			return {}
@@ -13,9 +13,12 @@ static func load_data() -> Dictionary:
 	if result.resources.is_empty() or result.buildings.is_empty() or result.ports.is_empty():
 		return {}
 	for definition: Dictionary in result.buildings.values():
-		for field: String in ["size", "coins", "wood", "jobs"]:
+		for field: String in ["coins", "wood", "jobs"]:
 			if not definition.has(field) or not definition[field] is int or definition[field] < 0:
 				return {}
+		if not definition.get("footprint") is Array or definition.footprint.size() != 2: return {}
+		for side: Variant in definition.footprint:
+			if not side is int or side < 1 or side > 16: return {}
 	for field: String in ["ticks_per_day", "ticks_per_second", "move_ticks", "inventory_capacity", "labor_interval"]:
 		if not result.balance.get(field, 0) is int or result.balance.get(field, 0) <= 0:
 			return {}

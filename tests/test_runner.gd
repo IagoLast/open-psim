@@ -3,12 +3,11 @@ const Simulation = preload("res://sim/simulation.gd")
 const Definitions = preload("res://adapters/definitions.gd")
 const Startup = preload("res://tests/scenarios/startup.gd")
 const Validation = preload("res://sim/validation.gd")
-const Runner = preload("res://adapters/simulation_runner.gd")
-const Economy = preload("res://sim/systems/economy.gd")
-const Citizens = preload("res://sim/systems/citizens.gd")
-const Maritime = preload("res://sim/systems/maritime.gd")
 const Map = preload("res://sim/world_map.gd")
-const Paths = preload("res://sim/pathfinding.gd")
+const Citizens = preload("res://sim/systems/citizens.gd")
+const Housing = preload("res://sim/systems/housing.gd")
+const Risks = preload("res://sim/systems/risks.gd")
+const Progression = preload("res://sim/systems/progression.gd")
 var passed: int = 0
 var failed: int = 0
 
@@ -18,273 +17,350 @@ func fresh() -> RefCounted:
 	return sim
 
 func check(condition: bool, title: String) -> void:
-	if condition:
-		passed += 1
-		print("OK  ",title)
-	else:
-		failed += 1
-		printerr("FAIL ",title)
+	print("OK " if condition else "FAIL ",title)
+	if condition: passed += 1
+	else: failed += 1
 
 func advance(sim: Variant, ticks: int) -> void:
 	for i: int in range(ticks): sim.step()
-
-func same(a: Variant, b: Variant) -> bool:
-	return JSON.stringify(a.serialize()) == JSON.stringify(b.serialize())
 
 func reject(sim: Variant, command: Dictionary, title: String) -> void:
 	var before: Dictionary = sim.serialize()
 	check(not sim.apply_command(command).ok and sim.serialize() == before,title)
 
+func valid(sim: Variant, title: String) -> void:
+	var error: String = Validation.check(sim.serialize(),sim.definitions)
+	check(error.is_empty(),title+": "+error)
+
 func _initialize() -> void:
 	var sim: Variant = fresh()
-	check(sim.state.citizens.size() == 8 and sim.state.coins == 1000 and sim.definitions.resources.size() == 16,"Inicio y 16 recursos")
-	check(sim.width() == 128 and sim.state.terrain.size() == 16384,"Ría interior: 16.384 casillas dedicadas a Pontevedra, Combarro y Marín")
-	check(sim.state.terrain == fresh().state.terrain,"Geografía reproducible")
-	for terrain: String in ["fertile","forest","rock","clay","ore"]: check(sim.state.terrain.has(terrain),"Territorio: " + terrain)
-	check(not Paths.neighbors(127,128).has(128) and Paths.neighbors(128,128).has(256),"Vecindad sin salto entre filas")
-	check(Validation.check(sim.serialize(),sim.definitions).is_empty(),"Guardado inicial válido")
-	reject(sim,{"type":"build","kind":"house","x":99,"z":32},"Solapamiento sin cobro ni secuencia")
-	var coins: int = sim.state.coins
-	check(sim.apply_command({"type":"build","kind":"house","x":99,"z":28}).ok and sim.state.coins == coins-30 and sim.state.inventory.wood == 132,"Construcción y cobro único")
-	reject(sim,{"type":"road","cells":[31*128+99,32*128+99]},"Tramo inválido atómico")
-	coins = sim.state.coins
-	check(sim.apply_command({"type":"road","cells":[31*128+99,31*128+100]}).ok and sim.state.coins == coins,"Caminos existentes gratuitos")
-	reject(sim,{"type":"demolish","cell":32*128+99},"Vivienda ocupada protegida")
-	reject(sim,{"type":"demolish","cell":32*128+95},"Almacén protegido")
-	reject(sim,{"type":"build","kind":"dock","x":110,"z":18},"Muelle exige costa")
-	reject(sim,{"type":"build","kind":"quarry","x":99,"z":36},"Cantera exige granito cercano")
-	reject(sim,{"type":"build","kind":"vineyard","x":99,"z":36},"Viñedo exige suelo fértil")
-	check(sim.apply_command({"type":"build","kind":"house","x":119,"z":117}).ok,"Construir en el extremo ampliado del mapa")
-	sim.state.inventory.stone = 0
-	reject(sim,{"type":"build","kind":"clinic","x":110,"z":32},"Coste de granito atómico")
-	check(Economy.recipe_error(sim,sim.definitions.buildings.smith) == "Falta hierro","Herrería exige insumos")
-
-	sim = fresh()
-	Startup.build_economy(sim)
-	check(sim.state.voyages.size() == 1 and sim.state.inventory.salt == 0,"Sal importada reservada, no instantánea")
-	check(sim.state.voyages[0].path.all(func(c: int) -> bool: return sim.state.terrain[c] == "water") and sim.state.voyages[0].path[-1]%128 == 0,"Nave con ruta continua hasta el Atlántico")
-	check(sim.state.citizens.all(func(c: Dictionary) -> bool: return c.job > 0),"Ocho trabajadores en la economía inicial")
-	for command: Dictionary in [
-		{"type":"trade","dock":9,"port":"porto","direction":"buy","resource":"salt","quantity":-1},
-		{"type":"trade","dock":9,"port":"porto","direction":"buy","resource":"salt","quantity":1.5},
-		{"type":"trade","dock":9,"port":"porto","direction":"buy","resource":"salt","quantity":61},
-		{"type":"trade","dock":1,"port":"porto","direction":"buy","resource":"salt","quantity":1},
-		{"type":"trade","dock":9,"port":"porto","direction":"buy","resource":"fish","quantity":1},
-		{"type":"trade","dock":9,"port":"porto","direction":"buy","resource":"salt","quantity":1},
-		{"type":"demolish","cell":35*128+90}
-	]: reject(sim,command,"Orden comercial inválida sin efectos")
-	advance(sim,24)
-	check(sim.building(5).produced == 0,"Sin producción antes de la jornada")
-	advance(sim,20)
-	check(sim.state.citizens.any(func(c: Dictionary) -> bool: return c.activity == "Al trabajo"),"Trabajadores caminan realmente")
-	var restored: Variant = fresh()
-	var saved: Dictionary = Definitions._integers(JSON.parse_string(JSON.stringify(sim.serialize())))
-	check(restored.restore(saved).ok,"Guardar y cargar con nave en tránsito")
-	advance(sim,556)
-	advance(restored,556)
-	check(same(sim,restored),"Continuación determinista con entrega marítima")
-	check(sim.state.trade_completed == 1 and sim.state.inventory.salt == 30,"Entrega exacta al cumplir dos días")
-	advance(sim,600)
-	check(sim.building(5).produced > 0 and sim.building(7).produced > 0 and sim.state.inventory.salted_fish >= 10,"Integración: cultivar, pescar, importar sal y salar")
-	coins = sim.state.coins
-	var stock: int = sim.state.inventory.salted_fish
-	check(sim.apply_command({"type":"trade","dock":9,"port":"porto","direction":"sell","resource":"salted_fish","quantity":10}).ok and sim.state.coins == coins-8 and sim.state.inventory.salted_fish == stock-10 and sim.state.exported == 0,"Exportación: carga y flete al salir, ingreso diferido")
-	advance(sim,600)
-	check(sim.state.exported == 10 and sim.state.coins == coins-8+60+16,"Cobro exacto de exportación y dos días de impuestos")
-	check(sim.state.milestones.has("Diez unidades exportadas"),"Objetivo de comercio cumplido por entregas")
-	check(sim.apply_command({"type":"build","kind":"house","x":99,"z":28}).ok,"Expansión de viviendas")
-
+	check(sim.width() == 512 and sim.state.terrain.size() == 262144,"Mapa 512×512: cuatro veces la superficie")
+	check(sim.state.buildings.is_empty() and sim.state.citizens.is_empty(),"Fundación vacía")
+	check(sim.state.roads == Map.main_road() and sim.exterior.has(Map.exit_cell()),"Camino continuo entre extremos por el puente")
+	check(sim.state.roads.size() == Map.SIZE and sim.state.roads.all(func(c: int) -> bool: return c%Map.SIZE == Map.BURGO_BRIDGE.position.x),"Camino completamente recto y alineado con el puente")
+	check(sim.state.roads.all(func(c: int) -> bool: return sim.state.terrain[c] != "water"),"Camino principal sobre terreno transitable")
+	var bridge: Rect2i = Map.BURGO_BRIDGE
+	check(bridge.position.x > 400 and bridge.size.y < 40,"Puente desplazado al este y más corto")
+	check(sim.state.terrain[(bridge.position.y-1)*Map.SIZE+bridge.position.x] != "water" and sim.state.terrain[bridge.end.y*Map.SIZE+bridge.position.x] != "water","Puente apoyado en ambas orillas")
+	check(sim.state.terrain[60*Map.SIZE+439] == "water" and sim.state.terrain[60*Map.SIZE+442] == "water","El nuevo puente cruza el cauce estrecho")
+	check(sim.state.terrain[76*Map.SIZE+400] == "water","El cruce anterior recupera el río")
+	check(sim.state.terrain == fresh().state.terrain,"Geografía determinista")
+	valid(sim,"Guardado sin edificios")
 	var clone: Variant = fresh()
-	var clone2: Variant = fresh()
-	var runner := Runner.new()
-	runner.advance(clone,1)
-	check(clone.state.tick == 0,"Pausa real")
-	runner.speed = 1
-	for i: int in range(400): runner.advance(clone,0.05)
-	runner.speed = 4
-	for i: int in range(100): runner.advance(clone2,0.05)
-	check(same(clone,clone2),"Mismos ticks a x1 y x4")
-	sim = fresh()
-	Startup.build_economy(sim)
-	advance(sim,35)
-	var worker: Dictionary = sim.state.citizens[0]
-	var cell: int = worker.cell
-	var removed: Array = []
-	for next: int in Paths.neighbors(cell,128):
-		if sim.roads.has(next):
-			sim.apply_command({"type":"demolish","cell":next})
-			removed.append(next)
-	advance(sim,8)
-	check(worker.cell == cell and worker.activity == "Sin ruta","Corte de camino sin teletransporte")
-	for next: int in removed: sim.apply_command({"type":"road","cells":[next]})
-	advance(sim,30)
-	check(worker.activity != "Sin ruta","Ruta recuperada al reconstruir caminos")
+	check(clone.restore(sim.serialize()).ok,"Carga de partida vacía")
+	reject(sim,{"type":"demolish","cell":Map.entrance()},"Camino exterior protegido sin efectos")
+	reject(sim,{"type":"build","kind":"house","x":bridge.position.x,"z":bridge.position.y},"Puente protegido")
+	reject(sim,{"type":"build","kind":"house","x":511,"z":511},"Límites de huella")
+	reject(sim,{"type":"build","kind":"warehouse","x":441,"z":128,"rotation":7},"Giro inválido")
+	var house: int = Startup.build(sim,"house",441,133)
+	check(not sim.building(house).connected and sim.building(house).access >= 0,"Casa accede al exterior antes del almacén")
+	var warehouse: int = Startup.build(sim,"warehouse",441,128,1)
+	check(warehouse != 1 and sim.building(house).connected,"Almacén construible sin ID reservado")
+	check(sim.footprint("warehouse",441,128,1).size() == 12 and sim.occupied.has(130*512+444) and not sim.occupied.has(131*512+441),"Huella rectangular girada real")
+	reject(sim,{"type":"build","kind":"house","x":444,"z":129},"Solapamiento rectangular rechazado sin cobro")
+	valid(sim,"Guardado de rectángulo girado")
+	check(clone.restore(sim.serialize()).ok and clone.occupied == sim.occupied,"Rotación sobrevive a carga")
 
 	sim = fresh()
-	Startup.build_economy(sim)
-	sim.apply_command({"type":"demolish","cell":37*128+90})
-	advance(sim,600)
-	check(sim.state.voyages.size() == 1 and sim.state.inventory.salt == 0 and sim.state.voyages[0].status == "Esperando camino al almacén","Carga espera si el muelle pierde acceso terrestre")
-	check(Validation.check(sim.serialize(),sim.definitions).is_empty(),"Guardado válido con entrega pendiente")
-	sim.apply_command({"type":"road","cells":[37*128+90]})
-	advance(sim,1)
-	check(sim.state.voyages.is_empty() and sim.state.inventory.salt == 30,"Reconexión descarga una sola vez")
-	check(sim.apply_command({"type":"route","repeat":true,"dock":9,"port":"porto","direction":"buy","resource":"salt","quantity":10}).ok,"Crear ruta recurrente")
-	advance(sim,1500)
-	check(sim.state.trade_completed >= 3 and sim.state.voyages.size() == 1,"Ruta repite automáticamente después de regresar")
-	check(sim.apply_command({"type":"route","repeat":false,"dock":9}).ok and sim.state.trade_routes.is_empty() and sim.state.voyages.size() == 1,"Detener repetición conserva carga en tránsito")
-	advance(sim,600)
-	sim.state.trade_volume["porto:buy:salt"] = 180
-	reject(sim,{"type":"trade","dock":9,"port":"porto","direction":"buy","resource":"salt","quantity":1},"Cupo de puerto limitado")
-	sim.state.tick = 2999
-	advance(sim,1)
-	check(sim.state.trade_volume.is_empty(),"Cupos se renuevan cada diez días")
-	for key: String in sim.state.inventory: sim.state.inventory[key] = 0
-	sim.state.inventory.wood = 1195
-	reject(sim,{"type":"trade","dock":9,"port":"porto","direction":"buy","resource":"salt","quantity":10},"Importación no desborda almacén")
-	sim.state.inventory.wood = 1180
-	sim.apply_command({"type":"trade","dock":9,"port":"porto","direction":"buy","resource":"salt","quantity":20})
-	check(Economy.recipe_error(sim,sim.definitions.buildings.lumber) == "Almacén lleno","Producción respeta espacio reservado para barcos")
-	var invalid: Dictionary = sim.serialize()
-	invalid.voyages[0].path[0] = 33*128+100
-	var before: Dictionary = sim.serialize()
-	check(not sim.restore(invalid).ok and sim.serialize() == before,"Guardado con nave en tierra rechazado sin mutar partida")
-	invalid = sim.serialize()
-	invalid.citizens[0].home = 99999
-	check(not sim.restore(invalid).ok,"Referencias de ciudadanos validadas")
-	invalid = sim.serialize()
-	invalid.schema = 1
-	check(not sim.restore(invalid).ok,"Guardado de primera versión no se interpreta como v2")
-
-	test_local_geography()
-	test_growth_and_deposits()
-	test_services()
-	test_chains()
-	sim = fresh()
-	Startup.build_economy(sim)
-	var error: String = ""
-	for i: int in range(10000):
-		sim.step()
-		if i%100 == 0:
-			error = Validation.check(sim.serialize(),sim.definitions)
-			if not error.is_empty(): break
-	check(error.is_empty(),"10.000 ticks: inventario, rutas, cargas y referencias: " + error)
-	print("RESULTADO: %d correctas / %d fallidas" % [passed,failed])
-	quit(1 if failed > 0 else 0)
-
-func test_services() -> void:
-	var sim: Variant = fresh()
-	Startup.road(sim,Vector2i(99,30),Vector2i(107,30))
-	Startup.road(sim,Vector2i(107,31),Vector2i(107,35))
-	Startup.build(sim,"market",99,28)
-	Startup.build(sim,"clinic",102,28)
-	Startup.build(sim,"chapel",104,28)
-	Startup.build(sim,"watch",108,30)
-	Startup.build(sim,"school",108,33)
-	check(sim.building(2).services.values().all(func(value: bool) -> bool: return value),"Seis servicios llegan a hogares por caminos y personal")
+	var ids: Dictionary = Startup.build_economy(sim)
+	check(sim.state.coins > 0 and sim.state.inventory.wood > 0,"Fundación completa asequible con ayuda inicial")
+	advance(sim,2400)
+	check(sim.state.citizens.size() == 8,"Ocho vecinos inmigran desde el camino")
+	check(sim.state.citizens.all(func(c: Dictionary) -> bool: return c.job > 0 and not c.arriving),"Llegan andando y se incorporan al empleo")
+	check(sim.building(ids.farm).produced > 0 and sim.building(ids.fishery).produced > 0,"Producción alimentaria real")
+	check(sim.state.objective.founded,"Encargo de fundación completado")
+	valid(sim,"Fundación integrada")
+	check(not sim.state.merchant.is_empty(),"Mercaderes llegan sin muelle propio")
+	while sim.state.merchant.is_empty() or sim.state.merchant.status != "En puerto": sim.step()
 	var coins: int = sim.state.coins
-	advance(sim,300)
-	check(sim.state.coins == coins-12+8,"Mantenimiento diario e impuestos exactos")
-	advance(sim,600)
-	check(sim.building(2).level == 2 and sim.building(3).level == 2,"Tres días de comida, agua, mercado, salud y culto mejoran viviendas")
-	for resource: String in ["pottery","cloth","wine"]: sim.state.inventory[resource] = 2
-	advance(sim,300)
-	check(sim.building(2).level == 3 and sim.state.inventory.cloth == 0 and sim.state.inventory.wine == 0 and sim.state.inventory.pottery == 0,"Viviendas mercantiles consumen bienes y exigen todos los servicios")
-	advance(sim,300)
-	check(sim.building(2).level == 2,"Falta de bienes reduce nivel de vivienda")
-	sim.apply_command({"type":"activity","id":6})
-	check(not sim.building(2).services.health,"Hospital desactivado pierde cobertura")
-	advance(sim,300)
-	check(sim.building(2).level == 1,"Pérdida de servicio afecta evolución")
-	sim.state.coins = 0
-	advance(sim,300)
-	check(not sim.building(5).service_active and sim.building(2).water,"Sin presupuesto cierran servicios de pago; pozo continúa")
-	check(Validation.check(sim.serialize(),sim.definitions).is_empty(),"Guardado válido con servicios y evolución")
+	var salt: int = sim.state.inventory.salt
+	check(sim.apply_command({"type":"merchant_trade","warehouse":ids.warehouse,"direction":"buy","resource":"salt","quantity":10}).ok,"Comprar sal desde almacén")
+	check(sim.state.coins == coins-20 and sim.state.inventory.salt == salt+10,"Compra inmediata: cobro y mercancía exactos")
+	coins = sim.state.coins
+	var wood: int = sim.state.inventory.wood
+	check(sim.apply_command({"type":"merchant_trade","warehouse":ids.warehouse,"direction":"sell","resource":"wood","quantity":5}).ok,"Venta al mercader visitante")
+	check(sim.state.coins == coins+10 and sim.state.inventory.wood == wood-5,"Venta cobra una vez")
+	reject(sim,{"type":"merchant_trade","warehouse":ids.warehouse,"direction":"buy","resource":"salt","quantity":31},"Cupo agotado rechaza sin efectos")
+	reject(sim,{"type":"merchant_trade","warehouse":ids.warehouse,"direction":"buy","resource":"fish","quantity":1},"Mercancías solo de compra respetadas")
+	var saved: Dictionary = Definitions._integers(JSON.parse_string(JSON.stringify(sim.serialize())))
+	check(clone.restore(saved).ok,"Guardar y cargar visita con cupos gastados")
+	advance(sim,50)
+	advance(clone,50)
+	check(sim.serialize() == clone.serialize(),"Continuación determinista de inmigración y mercaderes")
+	var visit_number: int = sim.state.merchant_visits
+	advance(sim,1201)
+	check(sim.state.merchant_visits > visit_number,"Visitas marítimas recurrentes")
+	var dock: int = Startup.nearby(sim,"dock",Vector2i(430,70))
+	var trade: Dictionary = sim.apply_command({"type":"trade","dock":dock,"port":"porto","direction":"buy","resource":"salt","quantity":10})
+	check(trade.ok,"Ruta propia del muelle conserva comercio marítimo")
+	if trade.ok:
+		var before: int = sim.state.inventory.salt
+		advance(sim,600)
+		check(sim.state.voyages.is_empty() and sim.state.trade_completed > 0,"Travesía entrega y finaliza")
+	valid(sim,"Comercio, mercaderes y producción coexistentes")
 
-func test_chains() -> void:
-	# Isolated recipe tests use actual workers and ticks; starting materials are explicit fixtures.
-	for kind: String in ["mill","bakery","winery","potter","smith","weaver"]:
-		var sim: Variant = fresh()
-		for resource: String in sim.definitions.buildings[kind].inputs: sim.state.inventory[resource] = 40
-		var id: int = Startup.build(sim,kind,99,29)
-		var before: Dictionary = sim.state.inventory.duplicate()
-		advance(sim,249)
-		var d: Dictionary = sim.definitions.buildings[kind]
-		var produced: bool = sim.building(id).produced > 0
-		for resource: String in d.outputs: produced = produced and sim.state.inventory[resource] > before[resource]
-		for resource: String in d.inputs: produced = produced and sim.state.inventory[resource] < before[resource]
-		check(produced,"Cadena con trabajo e insumos reales: " + d.label)
+	test_housing()
+	test_risks()
+	test_pilgrims()
+	test_objective()
+	test_granary()
+	test_arrivals()
+	test_road_surfaces()
+	test_food_chains()
+	test_convent()
+	print("RESULTADO: %d correctas / %d fallidas" % [passed,failed])
+	quit(1 if failed else 0)
+
+func test_convent() -> void:
 	var sim: Variant = fresh()
-	var id: int = Startup.build(sim,"depot",99,29)
-	check(Economy.capacity(sim) == 2000,"Depósito conectado amplía capacidad")
-	sim.state.inventory.wood = 1300
-	reject(sim,{"type":"demolish","cell":29*128+99},"No se destruye almacenamiento ocupado")
-	sim.apply_command({"type":"demolish","cell":31*128+99})
-	sim.apply_command({"type":"demolish","cell":31*128+100})
-	check(not sim.building(id).connected and Economy.capacity(sim) == 1200,"Depósito desconectado deja de aportar capacidad operativa")
-	reject(sim,{"type":"demolish","cell":29*128+99},"Depósito desconectado tampoco pierde existencias por demolición")
-	check(Validation.check(sim.serialize(),sim.definitions).is_empty(),"Exceso temporal al cortar depósito se guarda sin perder bienes")
+	sim.state.coins = 2000
+	sim.state.inventory.stone = 100
+	Startup.build(sim,"warehouse",441,128)
+	var home_id: int = Startup.build(sim,"house",441,133)
+	var home: Dictionary = sim.building(home_id)
+	var coins: int = sim.state.coins
+	var wood: int = sim.state.inventory.wood
+	var stone: int = sim.state.inventory.stone
+	var convent: int = Startup.build(sim,"convent",441,136,1)
+	Startup.connect_building(sim,convent)
+	check(sim.dimensions(sim.building(convent)) == Vector2i(8,10) and sim.footprint("convent",441,136,1).size() == 80,"Convento: parcela monumental 10×8 giratoria")
+	check(sim.state.coins == coins-320 and sim.state.inventory.wood == wood-40 and sim.state.inventory.stone == stone-80,"Convento: coste de monedas, madera y granito")
+	check(not home.services.faith,"Convento sin personal no aporta culto")
+	for i: int in range(2): sim._add_citizen(home_id,home.access)
+	Citizens.assign_jobs(sim)
+	check(home.services.faith and sim.building(convent).assigned == 2,"Convento con personal cubre culto por caminos")
+	sim.apply_command({"type":"activity","id":convent})
+	check(not home.services.faith,"Desactivar convento retira cobertura")
+	sim.apply_command({"type":"activity","id":convent})
+	var before_upkeep: int = sim.state.coins
+	Citizens.daily(sim)
+	check(sim.state.coins == before_upkeep-5,"Convento cobra cinco monedas de mantenimiento diario")
+	valid(sim,"Guardado válido con convento")
+	var clone: Variant = fresh()
+	check(clone.restore(Definitions._integers(JSON.parse_string(JSON.stringify(sim.serialize())))).ok and clone.building(convent).type == "convent","Cargar convento conserva edificio y servicio")
 
-func test_growth_and_deposits() -> void:
+func test_food_chains() -> void:
+	var sim: Variant = fresh()
+	# Start with no assumed imports or initial stock: detect missing producers and cycles.
+	var obtainable: Dictionary = {}
+	for iteration: int in range(sim.definitions.resources.size()):
+		for d: Dictionary in sim.definitions.buildings.values():
+			if d.get("outputs",{}).is_empty(): continue
+			if d.get("inputs",{}).keys().all(func(r: String) -> bool: return obtainable.has(r)):
+				for resource: String in d.outputs: obtainable[resource] = true
+	for resource: String in sim.definitions.resources:
+		check(obtainable.has(resource),"Producción local alcanzable: " + resource)
+
+	sim.state.coins = 10000
+	sim.state.inventory.wood = 500
+	Startup.build(sim,"warehouse",441,128)
+	reject(sim,{"type":"build","kind":"saltworks","x":445,"z":128},"Salinas rechazan parcelas interiores")
+	var producers: Array = []
+	for kind: String in ["lumber","farm","fishery","saltworks","saltery","mill","bakery","vineyard","winery"]:
+		var origin := Vector2i(445,128)
+		if kind in ["farm","vineyard"]: origin = Vector2i(444,112)
+		if kind == "lumber": origin = Vector2i(456,142)
+		if kind in ["fishery","saltworks"]: origin = Vector2i(438,70)
+		producers.append(sim.building(Startup.nearby(sim,kind,origin,1 if kind == "saltworks" else 0)))
+	valid(sim,"Cadenas alimentarias construibles en el mapa real")
+	var clone: Variant = fresh()
+	check(clone.restore(sim.serialize()).ok,"Guardado con salinas giradas se puede cargar")
+	for resource: String in sim.state.inventory: sim.state.inventory[resource] = 0
+	var saltworks: Dictionary = producers[3]
+	sim.Economy.produce(sim)
+	check(sim.state.inventory.salt == 0 and saltworks.block == "0/1 trabajadores","Salinas sin personal no producen")
+	# Isolate production from daily consumption and walking; inputs must come from these buildings.
+	for item: Dictionary in producers:
+		item.assigned = sim.definitions.buildings[item.type].jobs
+		item.present = item.assigned
+	saltworks.connected = false
+	sim.Economy.produce(sim)
+	check(sim.state.inventory.salt == 0 and saltworks.block == "Sin camino al almacén","Salinas desconectadas no producen")
+	saltworks.connected = true
+	for tick: int in range(600): sim.Economy.produce(sim)
+	for item: Dictionary in producers:
+		check(item.produced > 0,"Cadena alimentaria produce sin compras: " + item.type)
+	check(sim.state.inventory.salted_fish > 0 and sim.state.inventory.bread > 0 and sim.state.inventory.wine > 0,"Salazón, pan y vino desde inventario vacío")
+
+func test_granary() -> void:
+	var sim: Variant = fresh()
+	var warehouse: int = Startup.build(sim,"warehouse",441,128)
+	var horreo: int = Startup.build(sim,"horreo",447,133)
+	check(sim.footprint("horreo",447,133).size() == 1,"El hórreo ocupa una sola casilla")
+	for resource: String in sim.state.inventory: sim.state.inventory[resource] = 0
+	sim.state.inventory.wood = 1200
+	check(not sim.Economy.has_room(sim,"grain",1),"Hórreo desconectado no amplía capacidad")
+	Startup.connect_building(sim,horreo)
+	check(sim.Economy.has_room(sim,"grain",400),"Hórreo conectado añade 400 plazas de cereal")
+	check(not sim.Economy.has_room(sim,"wood",1),"La madera no ocupa la reserva alimentaria")
+	sim.state.inventory.grain = 399
+	advance(sim,301)
+	check(sim.apply_command({"type":"merchant_trade","warehouse":warehouse,"direction":"buy","resource":"grain","quantity":1}).ok,"Compra de cereal entra en el hórreo con almacén general lleno")
+	reject(sim,{"type":"merchant_trade","warehouse":warehouse,"direction":"buy","resource":"grain","quantity":1},"Hórreo lleno rechaza sobrecapacidad sin cobro")
+	valid(sim,"Guardado con 1200 mercancías y 400 alimentos")
+	var clone: Variant = fresh()
+	check(clone.restore(sim.serialize()).ok and clone.state.inventory.grain == 400,"Carga conserva los alimentos del hórreo")
+	var item: Dictionary = sim.building(horreo)
+	reject(sim,{"type":"demolish","cell":item.z*sim.width()+item.x},"No se demuele un hórreo cuya reserva está ocupada")
+	sim.state.inventory.grain = 0
+	check(sim.Economy.has_room(sim,"flour",400) and sim.Economy.has_room(sim,"bread",400),"Harina y pan comparten reserva alimentaria")
+	check(not sim.Economy.has_room(sim,"salt",1),"La sal necesita almacenamiento general")
+	check(sim.apply_command({"type":"demolish","cell":item.z*sim.width()+item.x}).ok,"Hórreo vacío se puede demoler")
+
+func test_arrivals() -> void:
+	var sim: Variant = fresh()
+	check(Citizens.immigration_plan(sim.state,sim.definitions).reason.contains("almacén"),"La llegada explica que falta almacén")
+	Startup.build(sim,"warehouse",441,128)
+	check(Citizens.immigration_plan(sim.state,sim.definitions).reason.contains("vivienda"),"La llegada explica que falta vivienda")
+	Startup.build(sim,"house",441,133)
+	check(Citizens.immigration_plan(sim.state,sim.definitions).reason.contains("agua"),"La llegada explica que falta agua")
+	Citizens.immigrate(sim)
+	check(sim.state.citizens.is_empty(),"Sin agua no llegan vecinos")
+	Startup.build(sim,"well",441,139)
+	check(Citizens.immigration_plan(sim.state,sim.definitions).reason.contains("empleos"),"La llegada explica que faltan empleos")
+	Startup.nearby(sim,"lumber",Vector2i(456,142))
+	check(Citizens.immigration_plan(sim.state,sim.definitions).count == 2,"Vivienda, agua, alimentos y empleo permiten llegar")
+	Citizens.immigrate(sim)
+	check(sim.state.citizens.size() == 2 and sim.state.citizens[0].cell == Map.exit_cell(),"Los vecinos entran por el extremo más cercano")
+	check(Citizens.immigration_plan(sim.state,sim.definitions).arriving == 2,"El estado diferencia vecinos de camino")
+	advance(sim,300)
+	check(sim.state.citizens.size() == 2 and sim.state.citizens.all(func(c: Dictionary) -> bool: return not c.arriving and c.job > 0),"Primera pareja llega a casa y obtiene trabajo en una jornada")
+	valid(sim,"Llegada desde el norte se puede guardar")
+
+func test_road_surfaces() -> void:
+	var sim: Variant = fresh()
+	Startup.build(sim,"warehouse",441,128)
+	var home: int = Startup.build(sim,"house",445,128)
+	Startup.build(sim,"well",441,126)
+	var dirt: Array = [127*Map.SIZE+441,127*Map.SIZE+442,127*Map.SIZE+443,127*Map.SIZE+444]
+	var paved: Array = [127*Map.SIZE+445,127*Map.SIZE+446]
+	check(sim.apply_command({"type":"road","surface":"dirt","cells":dirt}).ok,"Construir un tramo de tierra")
+	check(sim.apply_command({"type":"road","surface":"paved","cells":paved}).ok,"Continuar con pavimento")
+	check(sim.building(home).connected and sim.building(home).water,"Caminos mixtos conectan almacén, vivienda y agua")
+	var coins: int = sim.state.coins
+	check(sim.apply_command({"type":"road","surface":"dirt","cells":dirt}).ok and sim.state.coins == coins,"Repasar el mismo acabado no vuelve a cobrar")
+	check(sim.apply_command({"type":"road","surface":"paved","cells":dirt}).ok and sim.state.coins == coins-dirt.size()*sim.definitions.balance.road_cost,"Pavimentar un camino cambia acabado y cobra solo sus casillas")
+	check(sim.RoadSurfaces.at(sim.state,dirt[0]) == "paved" and sim.building(home).water,"Cambiar acabado conserva la cobertura")
+	sim.apply_command({"type":"road","surface":"dirt","cells":dirt})
+	var saved: Dictionary = Definitions._integers(JSON.parse_string(JSON.stringify(sim.serialize())))
+	var clone: Variant = fresh()
+	check(clone.restore(saved).ok and clone.RoadSurfaces.at(clone.state,dirt[0]) == "dirt" and clone.RoadSurfaces.at(clone.state,paved[0]) == "paved","Los dos acabados sobreviven al guardado JSON")
+	var legacy: Dictionary = saved.duplicate(true)
+	legacy.erase("road_surfaces")
+	check(clone.restore(legacy).ok and clone.RoadSurfaces.at(clone.state,dirt[0]) == "paved","Los guardados anteriores conservan el pavimento")
+	check(clone.apply_command({"type":"road","surface":"dirt","cells":dirt}).ok,"Una partida antigua permite usar tierra")
+	check(sim.apply_command({"type":"demolish","cell":paved[-1]}).ok and not sim.state.road_surfaces.has(str(paved[-1])),"Demoler limpia el tipo de camino")
+	reject(sim,{"type":"road","surface":"lava","cells":dirt},"Acabado desconocido rechazado sin cambios")
+	reject(sim,{"type":"road","surface":"dirt","cells":[Map.BURGO_BRIDGE.position.y*Map.SIZE+Map.BURGO_BRIDGE.position.x]},"El puente mantiene su piedra")
+	var bad: Dictionary = saved.duplicate(true)
+	bad.road_surfaces["-1"] = "dirt"
+	check(not clone.restore(bad).ok,"Guardados con superficies fuera del mapa rechazados")
+	valid(sim,"Caminos mixtos válidos tras edición")
+
+func populated() -> Variant:
 	var sim: Variant = fresh()
 	Startup.build_economy(sim)
-	Startup.build(sim,"house",99,28)
-	Startup.build(sim,"mill",101,28)
-	Startup.build(sim,"market",104,28)
-	Startup.road(sim,Vector2i(99,30),Vector2i(107,30))
-	advance(sim,1200)
-	check(sim.state.citizens.size() >= 10,"Inmigración con vivienda, agua, comida y nuevos empleos")
-	check(sim.building(11).produced > 0,"Vecinos inmigrantes se incorporan a la cadena del molino")
-	check(Validation.check(sim.serialize(),sim.definitions).is_empty(),"Expansión desde presupuesto inicial mantiene invariantes")
-	for fixture: Array in [["quarry",113,32,Vector2i(114,31)],["claypit",104,43,Vector2i(104,42)],["mine",117,44,Vector2i(117,43)],["sheep",108,33,Vector2i(107,33)],["vineyard",104,19,Vector2i(107,19)]]:
-		sim = fresh()
-		var id: int = Startup.build(sim,fixture[0],fixture[1],fixture[2])
-		if fixture[0] == "claypit":
-			Startup.road(sim,Vector2i(107,31),Vector2i(107,42))
-			Startup.road(sim,Vector2i(107,42),fixture[3])
-		else: Startup.road(sim,Vector2i(107,31),fixture[3])
-		advance(sim,600)
-		check(sim.building(id).produced > 0,"Extracción/cultivo con terreno real: " + fixture[0])
-		check(Validation.check(sim.serialize(),sim.definitions).is_empty(),"Estado válido para " + fixture[0])
-	sim = fresh()
-	sim.state.inventory.grain = 0
-	sim.state.inventory.bread = 0
-	sim.state.inventory.fish = 16
-	sim.state.inventory.salt = 2
-	check(Economy.recipe_error(sim,sim.definitions.buildings.saltery) == "Reserva alimentaria protegida","Salazón respeta dos días de comida")
+	advance(sim,2400)
+	sim.state.coins = 10000
+	sim.state.inventory.wood = 500
+	return sim
 
-func test_local_geography() -> void:
-	var sim: Variant = fresh()
-	var width: int = sim.width()
-	check(sim.state.terrain[70*width+45] == "water" and sim.state.terrain[79*width+22] == "forest","Ría interior amplia con Tambo en el centro")
-	var land: Dictionary = {}
-	for cell: int in range(sim.state.terrain.size()):
-		if sim.state.terrain[cell] != "water": land[cell] = true
-	var origin: int = sim.building(1).access
-	var connected: Dictionary = Paths.distances(origin,land,width)
-	for town: Dictionary in Map.LANDMARKS:
-		if town.label not in ["PONTEVEDRA","COMBARRO","MARÍN"]: continue
-		check(connected.has(town.z*width+town.x),"Tierra firme accesible desde el asentamiento: " + town.label)
-	check(not connected.has(79*width+22),"Tambo sigue separada de ambas orillas")
-	for cell: int in land.keys():
-		if Map.BURGO_BRIDGE.has_point(Vector2i(cell%width,cell/width)): land.erase(cell)
-	check(not Paths.distances(origin,land,width).has(42*width+22),"El paso del Burgo conecta las orillas del Lérez")
-	reject(sim,{"type":"build","kind":"house","x":100,"z":18},"El paso del Burgo queda libre para caminos")
-	var crossing: Array = []
-	for z: int in range(14,24): crossing.append(z*width+100)
-	check(sim.apply_command({"type":"road","cells":crossing}).ok,"Se pueden trazar caminos por el paso del Burgo")
-	check(Validation.check(sim.serialize(),sim.definitions).is_empty(),"El cruce terrestre se puede guardar")
-	for coast: Vector2i in [Vector2i(22,42),Vector2i(44,112),Vector2i(95,32)]:
-		var harbor: bool = false
-		for z: int in range(coast.y-6,coast.y+7):
-			for x: int in range(coast.x-6,coast.x+7):
-				if sim.terrain_error("dock",x,z).is_empty():
-					if not Maritime.harbor_path(sim,{"type":"dock","x":x,"z":z}).is_empty():
-						harbor = true
-						break
-			if harbor: break
-		check(harbor,"Costa edificable con salida marítima junto a " + str(coast))
-	var saved: Dictionary = sim.serialize()
-	var previous: Dictionary = sim.serialize()
-	saved.erase("map_id")
-	check(not sim.restore(saved).ok and sim.serialize() == previous,"Guardados provinciales se rechazan sin alterar la ría")
+func test_housing() -> void:
+	var sim: Variant = populated()
+	for kind: String in ["market","clinic","chapel","watch","school"]:
+		Startup.nearby(sim,kind,Vector2i(444,136))
+	# Controlled service fixture isolates housing hysteresis and consumption from staffing.
+	for home: Dictionary in sim.state.buildings:
+		if home.type != "house": continue
+		for service: String in Citizens.SERVICE_LABELS: home.services[service] = true
+		home.water = true
+	for c: Dictionary in sim.state.citizens: c.fed = true
+	for i: int in range(3): Housing.daily(sim)
+	check(sim.building(2).level == 2 and Housing.capacity(sim.building(2),sim.definitions) == 6,"Tres días mejoran nivel y capacidad")
+	for resource: String in ["pottery","cloth","wine"]: sim.state.inventory[resource] = 6
+	for i: int in range(3): Housing.daily(sim)
+	check(sim.building(2).level == 3 and Housing.capacity(sim.building(2),sim.definitions) == 8,"Mercantil requiere suministro continuo")
+	check(sim.state.inventory.wine == 0,"Bienes se consumen cada día por hogar")
+	Housing.daily(sim)
+	check(sim.building(2).level == 3 and sim.building(2).decline_days == 1,"Un día de carencia avisa sin descenso inmediato")
+	Housing.daily(sim)
+	check(sim.building(2).level == 2,"Dos días de carencia bajan solo un nivel")
+	valid(sim,"Evolución residencial válida")
+	var neighborhood: Variant = fresh()
+	var first: int = Startup.build(neighborhood,"house",441,133)
+	var adjacent: int = Startup.build(neighborhood,"house",443,133)
+	check(neighborhood.building(first).adjoined != 0 and neighborhood.building(adjacent).adjoined != 0,"Casas detectan medianeras")
+	var unemployed: Variant = populated()
+	for b: Dictionary in unemployed.state.buildings:
+		if unemployed.definitions.buildings[b.type].jobs > 0: b.active = false
+	unemployed.Citizens.assign_jobs(unemployed)
+	advance(unemployed,2700)
+	check(unemployed.state.citizens.size() < 8,"Paro prolongado causa emigración")
+	valid(unemployed,"Emigración conserva referencias")
+
+func test_risks() -> void:
+	var sim: Variant = populated()
+	sim.state.tick = 4500
+	var home: Dictionary = sim.building(2)
+	home.age = 15
+	home.fire_risk = 79
+	Risks.daily(sim)
+	check(home.burn_days == 1,"Riesgo acumulado inicia incendio con aviso")
+	for i: int in range(3): Risks.daily(sim)
+	check(home.ruined and home.condition == 0,"Fuego desatendido deja ruinas reparables")
+	valid(sim,"Ruina con habitantes pendientes de realojo se guarda")
+	check(sim.apply_command({"type":"repair","id":home.id}).ok and home.connected and not home.ruined,"Reparación recupera edificio y conexión")
+	var firewatch: int = Startup.nearby(sim,"firewatch",Vector2i(443,139))
+	sim.building(firewatch).service_active = true
+	home.fire_risk = 90
+	home.burn_days = 1
+	Risks.daily(sim)
+	check(home.burn_days == 0 and home.fire_risk == 0,"Vigías con agua extinguen fuego")
+	home.condition = 21
+	Risks.daily(sim)
+	check(home.ruined,"Abandono estructural termina en derrumbe")
+	check(sim.apply_command({"type":"repair","id":home.id}).ok,"Derrumbe reparable")
+
+func test_pilgrims() -> void:
+	var sim: Variant = populated()
+	var inn: int = Startup.nearby(sim,"inn",Vector2i(441,141))
+	# Transfer a worker using public activity commands.
+	sim.apply_command({"type":"activity","id":8})
+	advance(sim,3600)
+	check(sim.state.pilgrims_served > 0,"Peregrinos llegan, se alojan y completan la salida")
+	check(sim.state.reputation > 0,"Atención completada mejora reputación")
+	check(sim.state.pilgrims.all(func(p: Dictionary) -> bool: return not p.has("job") and p.inn == inn),"Visitantes separados de población y empleo")
+	valid(sim,"Peregrinos y camas se guardan")
+	var clone: Variant = fresh()
+	check(clone.restore(sim.serialize()).ok,"Carga con peregrinos")
+	advance(sim,100)
+	advance(clone,100)
+	check(sim.serialize() == clone.serialize(),"Peregrinos continúan de forma determinista")
+
+func test_objective() -> void:
+	var sim: Variant = populated()
+	# Exercise the rolling objective with attainable thresholds in an isolated scenario.
+	sim.definitions.scenario.population = 8
+	sim.definitions.scenario.stability_population = 8
+	sim.definitions.scenario.prosperous_homes = 2
+	sim.definitions.scenario.exports = 5
+	for home: Dictionary in sim.state.buildings:
+		if home.type == "house": home.level = 2
+	sim.state.exported = 5
+	sim.state.trade_completed = 1
+	for i: int in range(4):
+		sim.state.operating = 8
+		Progression.daily(sim)
+	check(not sim.state.objective.won,"Victoria exige mantener condiciones")
+	sim.state.inventory.grain = 0
+	sim.state.inventory.fish = 0
+	Progression.daily(sim)
+	check(sim.state.objective.victory_days == 0,"Carencia interrumpe la estabilidad")
+	sim.state.inventory.grain = 100
+	for i: int in range(10):
+		sim.state.operating = 8
+		Progression.daily(sim)
+	check(sim.state.objective.won,"Encargo completo con condiciones sostenidas")
+	sim.state.coins = 0
+	check(sim.apply_command({"type":"aid"}).ok and sim.state.coins == 250,"Ayuda de emergencia permite recuperación")
+	reject(sim,{"type":"aid"},"Ayuda no repetible")

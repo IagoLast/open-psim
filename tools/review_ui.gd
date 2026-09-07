@@ -30,8 +30,9 @@ func run() -> void:
 	game.set_process(false)
 	Startup.build_economy(game.sim)
 	game.refresh()
-	for page: String in ["hud","catalog","buildings","ledger","chains","territory","trade","voyages","city","building","citizen","map","help","menu","confirmation"]:
-		for panel: Control in [game.hud.build_panel,game.hud.ledger_panel,game.hud.trade_panel,game.hud.map_panel,game.hud.help_panel,game.hud.sidebar]: panel.hide()
+	for page: String in ["hud","catalog","buildings","demolish","ledger","chains","territory","trade","voyages","city","building","citizen","map","help","menu","confirmation"]:
+		game._select_tool("select")
+		game.hud.close_panels()
 		game.hud.selected_building = 0
 		game.hud.selected_citizen = 0
 		game.hud.city_open = false
@@ -39,19 +40,20 @@ func run() -> void:
 		match page:
 			"catalog": game.hud.show_categories()
 			"buildings":
-				game.hud.build_panel.show()
+				game.hud.open_panel(game.hud.build_panel)
 				game.hud.show_buildings("Servicios")
+			"demolish": game._select_tool("demolish")
 			"ledger","chains","territory":
-				game.hud.ledger_panel.show()
+				game.hud.open_panel(game.hud.ledger_panel)
 				press({"ledger":"Existencias","chains":"Cadenas","territory":"Territorio"}[page])
 			"trade","voyages":
-				game.hud.trade_panel.show()
+				game.hud.open_panel(game.hud.trade_panel)
 				press("Contratar nave" if page == "trade" else "Travesías")
 			"city": game.hud.city_open = true
 			"building": game.hud.selected_building = 1
 			"citizen": game.hud.selected_citizen = 1
-			"map": game.hud.map_panel.show()
-			"help": game.hud.help_panel.show()
+			"map": game.action("overview")
+			"help": game.hud.open_panel(game.hud.help_panel)
 			"menu": press("Menú")
 			"confirmation":
 				press("Menú")

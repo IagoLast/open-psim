@@ -68,8 +68,32 @@ Las variantes de casa son visuales y comparten capacidades y costes. Los
 barcos y árboles son decoración. Los recursos no añaden nuevas mercancías.
 La arquitectura es estilizada, sin atribuir reconstrucción histórica exacta.
 
-Las tres viviendas se distinguen por su silueta: casa pequeña, porche de madera
-y casa de dos plantas con balcón. El campo combina hileras de maíz, cerca y
+El convento toma como referencias las fotografías aportadas de
+[`San Francisco`](references/san-francisco-convent.png) y su
+[`fachada`](references/san-francisco-facade.png). Conserva el ala larga de tres
+plantas, la iglesia de hastial de granito, el rosetón con tracería radial, la
+portada de arcos concéntricos y el campanario lateral con remate de piedra.
+El patio es una simplificación del conjunto para la parcela monumental 10×8. Se omiten los
+elementos urbanos contemporáneos y se mantiene la paleta de la colección.
+
+Los servicios se distinguen por volumen y espacios abiertos: el mercado es una
+plaza de toldos de lona; el hospital forma una U baja con patio medicinal y
+cubiertas de pizarra; la capilla tiene nave estrecha y ábside poligonal; la guardia
+ocupa una torre octogonal almenada. La escuela es un aula longitudinal de una
+planta, con ventanas altas y una única cubierta de teja a dos aguas; los vigías
+usan una torre de madera arriostrada con cisterna; los maestros
+de obras tienen un patio abierto con arco en construcción y andamios. La
+hospedería tiene dos plantas de habitaciones, chimenea y un balcón pequeño sobre
+ménsulas de granito, al que se accede por una puerta en la planta superior.
+Escuela y hospedería evitan marquesinas, toldos, torrecillas y escaleras exteriores
+sin destino. Los elementos de identificación se fijan a los muros. Los detalles
+de actividad refuerzan estas siluetas sin depender de etiquetas o colores.
+
+Las tres viviendas canónicas se amplían con nueve siluetas, tres por nivel:
+casas bajas con porche o anexo, dos plantas con patín o balcón y casas mercantiles
+con galerías o soportales. La [nueva referencia de casas](references/house-variants-reference.png) guía sus proporciones
+compactas, cubiertas de terracota y pequeños arbustos. Cada casa mantiene su
+parcela 2×2 y su nivel de juego. El campo combina hileras de maíz, cerca y
 caseta de piedra; el identificador de simulación del cereal sigue siendo `grain`.
 La pesquería se reconoce por muelle, red y barca; la salazón por secadero y mesa
 de sal. Las categorías reutilizan geometría de casas, pozo, maíz y madera.

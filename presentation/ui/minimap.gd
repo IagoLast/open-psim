@@ -2,6 +2,7 @@ extends Control
 const Map = preload("res://sim/world_map.gd")
 signal navigate(point: Vector3)
 var snapshot: Dictionary = {}
+var definitions: Dictionary = {}
 var focus: Vector3 = Map.START_FOCUS
 var zoom: float = 30
 var terrain_texture: ImageTexture
@@ -10,7 +11,6 @@ const COLORS: Dictionary = {"water":Color("#4fabb4"),"land":Color("#b9bd8c"),"fe
 
 func _ready() -> void:
 	clip_contents = true
-	custom_minimum_size = Vector2(330,330)
 	mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	tooltip_text = "Ría de Pontevedra · norte arriba · clic para viajar"
 
@@ -25,8 +25,11 @@ func _draw() -> void:
 		terrain_seed = snapshot.seed
 	draw_texture_rect(terrain_texture,Rect2(Vector2.ZERO,size),false)
 	draw_rect(Rect2(Vector2(Map.BURGO_BRIDGE.position)*tile,Vector2(Map.BURGO_BRIDGE.size)*tile),Color("#e5d7b4"))
-	for cell: int in snapshot.roads: draw_rect(Rect2(Vector2(cell%width,cell/width)*tile,tile),Color("#e5d7b4"))
-	for item: Dictionary in snapshot.buildings: draw_rect(Rect2(Vector2(item.x,item.z)*tile,tile*2),Color("#d39860"))
+	for cell: int in snapshot.roads:
+		draw_rect(Rect2(Vector2(cell%width,cell/width)*tile,tile),Color("#a78056") if preload("res://sim/road_surfaces.gd").at(snapshot,cell) == "dirt" else Color("#e5d7b4"))
+	for item: Dictionary in snapshot.buildings:
+		var footprint: Vector2i = preload("res://sim/footprints.gd").dimensions(definitions.buildings[item.type],item.rotation)
+		draw_rect(Rect2(Vector2(item.x,item.z)*tile,tile*Vector2(footprint)),Color("#994a32") if item.ruined else Color("#d39860"))
 	for voyage: Dictionary in snapshot.voyages:
 		var phase: float = float(voyage.elapsed)/voyage.duration
 		var travel: float = phase*2 if phase < 0.5 else (1-phase)*2
@@ -36,7 +39,8 @@ func _draw() -> void:
 		var font: Font = get_theme_font("font","Label")
 		var text: String = marker.label
 		var major: bool = text in ["PONTEVEDRA","COMBARRO","MARÍN"]
-		var font_size: int = 14 if major else 12
+		if size.x < 240 and not major: continue
+		var font_size: int = (11 if major else 10) if size.x < 240 else (14 if major else 12)
 		var anchor := Vector2(marker.x,marker.z)*tile
 		if text == "RÍA DE PONTEVEDRA": text = "RÍA DE\nPONTEVEDRA"
 		if major: draw_circle(anchor,2.5,Color("#704835"))

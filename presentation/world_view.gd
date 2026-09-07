@@ -4,8 +4,12 @@ const Assets = preload("res://presentation/asset_factory.gd")
 const Landscape = preload("res://presentation/landscape.gd")
 var camera: Camera3D
 var focus: Vector3 = Map.START_FOCUS
+var sidebar_width: float = 0.0
 var map_size: int = Map.SIZE
 var ships: Dictionary = {}
+var pilgrims: Dictionary = {}
+var merchant_ship: Node3D
+const Footprints = preload("res://sim/footprints.gd")
 var landmarks: Array[Label3D] = []
 var buildings: Dictionary = {}
 var people: Dictionary = {}
@@ -38,7 +42,7 @@ func setup(snapshot: Dictionary) -> void:
 	camera = Camera3D.new()
 	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
 	camera.size = 30
-	camera.far = 500
+	camera.far = Map.SIZE*5.0
 	add_child(camera)
 	get_viewport().msaa_3d = Viewport.MSAA_4X
 	update_camera()
@@ -86,8 +90,10 @@ func setup(snapshot: Dictionary) -> void:
 	add_child(preview)
 
 func update_camera() -> void:
-	camera.position = focus + Vector3(120,120,120)
+	camera.position = focus + Vector3.ONE*maxf(300,Map.SIZE*1.2)
 	camera.look_at(focus)
+	# Keep the town centered in the playable area beside the permanent menu.
+	camera.position += camera.basis.x * sidebar_width / get_viewport().get_visible_rect().size.y * camera.size * 0.5
 	if landscape != null: landscape.set_overview(camera.size >= 65)
 	for title: Label3D in landmarks:
 		title.visible = camera.size >= 65
@@ -130,7 +136,7 @@ func sync(snapshot: Dictionary, definitions: Dictionary) -> void:
 		for cell: int in snapshot.roads:
 			# The Blender bridge already supplies paving at the walking plane.
 			if Map.BURGO_BRIDGE.has_point(Vector2i(cell%map_size,cell/map_size)): continue
-			var road: Node3D = Assets.road()
+			var road: Node3D = Assets.road(preload("res://sim/road_surfaces.gd").at(snapshot,cell))
 			if road != null:
 				road.rotation.y = posmod(cell*13+int(cell/map_size)*7,4)*PI*0.5
 				road.position = Vector3(cell%map_size+0.5,0.0,cell/map_size+0.5)
@@ -138,14 +144,8 @@ func sync(snapshot: Dictionary, definitions: Dictionary) -> void:
 		var existing: Array = []
 		for item: Dictionary in snapshot.buildings:
 			existing.append(item.id)
-			var footprint: int = definitions.buildings[item.type].size
-			for dz: int in range(footprint):
-				for dx: int in range(footprint): building_cells[(item.z + dz) * map_size + item.x + dx] = item.id
-			if not buildings.has(item.id):
-				var model: Node3D = Assets.building(item.type,definitions.buildings[item.type].size,item.id,definitions.buildings[item.type].label,snapshot.seed,"%d:%d" % [item.x,item.z])
-				model.position = Vector3(item.x,0,item.z)
-				add_child(model)
-				buildings[item.id] = model
+			for cell: int in Footprints.cells(definitions.buildings[item.type],item.x,item.z,map_size,item.rotation): building_cells[cell] = item.id
+
 		for id: int in buildings.keys():
 			if not existing.has(id):
 				buildings[id].free()
@@ -157,11 +157,32 @@ func sync(snapshot: Dictionary, definitions: Dictionary) -> void:
 			buildings[hovered_building].get_node("Status").hide()
 		hovered_building = 0
 	for item: Dictionary in snapshot.buildings:
+		var signature: String = "%s:%s:%s:%s:%s:%s:%s" % [item.type,item.level,item.front,item.adjoined,item.rotation,item.ruined,item.burn_days]
+		if not buildings.has(item.id) or buildings[item.id].get_meta("signature","") != signature:
+			if buildings.has(item.id): buildings[item.id].free()
+			var context: Dictionary = item.duplicate()
+			if item.type == "house": context.model_family = definitions.housing.levels[item.level-1].model
+			var model: Node3D = Assets.building(item.type,Footprints.dimensions(definitions.buildings[item.type],item.rotation),item.id,definitions.buildings[item.type].label,snapshot.seed,"%d:%d" % [item.x,item.z],context)
+			model.position = Vector3(item.x,0,item.z)
+			model.set_meta("signature",signature)
+			add_child(model)
+			buildings[item.id] = model
 		var status: Label3D = buildings[item.id].get_node("Status")
-		status.text = "SIN CAMINO" if not item.connected else ("CUIDADA" if item.type == "house" and item.care_days >= 3 else "")
-		if item.type == "farm" and item.connected:
-			status.text = "%d%% · %d presentes" % [100*item.work/definitions.buildings.farm.work,item.present]
+		var workers: Label3D = buildings[item.id].get_node("Workers")
+		workers.visible = item.assigned > 0 and not item.ruined and camera.size < 65
+		workers.text = "● %d" % (item.present if item.present > 0 else item.assigned)
+		workers.modulate = Color("#91bd72") if item.present > 0 else Color("#e4ba68")
+		status.text = "RUINAS · REPARAR" if item.ruined else ("¡FUEGO!" if item.burn_days > 0 else ("SIN ALMACÉN / CAMINO" if not item.connected else (definitions.housing.levels[item.level-1].label.to_upper() if item.type == "house" else "")))
+		if definitions.buildings[item.type].jobs > 0 and not item.ruined:
+			status.text += "\nDentro: %d · Asignados: %d/%d" % [item.present,item.assigned,definitions.buildings[item.type].jobs]
+			workers.position.y = status.position.y+0.6
 		status.modulate = Color("#ffa48d") if not item.connected else Color("#edf5c4")
+	var active_people: Array = snapshot.citizens.map(func(c: Dictionary) -> int: return c.id)
+	for id: int in people.keys():
+		if not active_people.has(id):
+			people[id].free()
+			people.erase(id)
+	_sync_visitors(snapshot)
 	var active_ships: Array = []
 	for voyage: Dictionary in snapshot.voyages:
 		active_ships.append(voyage.id)
@@ -180,6 +201,7 @@ func sync(snapshot: Dictionary, definitions: Dictionary) -> void:
 			if model == null: continue
 			add_child(model)
 			people[citizen.id] = model
+		people[citizen.id].visible = citizen.activity != "Trabajando" or not buildings.has(citizen.job)
 	for id: int in people.keys():
 		if not snapshot.citizens.any(func(c: Dictionary) -> bool: return c.id == id):
 			people[id].free()
@@ -201,6 +223,8 @@ func animate(snapshot: Dictionary, fraction: float, moving_time: float) -> void:
 	for citizen: Dictionary in snapshot.citizens:
 		if not people.has(citizen.id): continue
 		var model: Node3D = people[citizen.id]
+		model.visible = citizen.activity != "Trabajando" or not buildings.has(citizen.job)
+		if not model.visible: continue
 		var position_value := Vector3(citizen.cell%map_size+0.5,0.07,citizen.cell/map_size+0.5)
 		var walking: bool = citizen.activity in ["Al trabajo","A casa","Llegando"] and not citizen.route.is_empty()
 		if walking:
@@ -216,7 +240,7 @@ func animate(snapshot: Dictionary, fraction: float, moving_time: float) -> void:
 		if limbs.size() == Assets.LIMBS.size():
 			limbs.LegL.rotation.x = swing
 			limbs.LegR.rotation.x = -swing
-			limbs.ArmL.rotation.x = -swing if citizen.activity != "Trabajando" else sin(moving_time*6)*0.6
+			limbs.ArmL.rotation.x = -swing
 			limbs.ArmR.rotation.x = swing
 
 func refresh_overlay(snapshot: Dictionary, definitions: Dictionary) -> void:
@@ -224,11 +248,40 @@ func refresh_overlay(snapshot: Dictionary, definitions: Dictionary) -> void:
 	if not water_view: return
 	for item: Dictionary in snapshot.buildings:
 		if item.type == "house":
-			var size: int = definitions.buildings.house.size
-			Assets.box(overlay,Vector3(size,0.04,size),Vector3(item.x+size/2.0,0.18,item.z+size/2.0),Color(0.2,0.75,0.95,0.5) if item.water else Color(0.9,0.3,0.2,0.5))
+			var size: Vector2i = Footprints.dimensions(definitions.buildings.house,item.rotation)
+			Assets.box(overlay,Vector3(size.x,0.04,size.y),Vector3(item.x+size.x/2.0,0.18,item.z+size.y/2.0),Color(0.2,0.75,0.95,0.5) if item.water else Color(0.9,0.3,0.2,0.5))
 
 func show_preview(cells: Array, valid: bool) -> void:
 	for child: Node in preview.get_children(): child.free()
 	for cell: int in cells:
 		if cell < 0 or cell >= map_size*map_size: continue
 		Assets.box(preview,Vector3(0.95,0.12,0.95),Vector3(cell%map_size+0.5,0.15,cell/map_size+0.5),Color(0.5,0.95,0.65,0.5) if valid else Color(1,0.25,0.17,0.55))
+
+func _sync_visitors(snapshot: Dictionary) -> void:
+	var ids: Array = []
+	for visitor: Dictionary in snapshot.pilgrims:
+		ids.append(visitor.id)
+		if not pilgrims.has(visitor.id):
+			var person: Node3D = Assets.citizen(visitor.id)
+			add_child(person)
+			Assets.label(person,"Peregrino",Vector3(0,1.6,0),18)
+			pilgrims[visitor.id] = person
+		pilgrims[visitor.id].position = Vector3(visitor.cell%map_size+0.7,0.07,visitor.cell/map_size+0.7)
+	for id: int in pilgrims.keys():
+		if not ids.has(id):
+			pilgrims[id].free()
+			pilgrims.erase(id)
+	if snapshot.merchant.is_empty():
+		if is_instance_valid(merchant_ship): merchant_ship.free()
+		merchant_ship = null
+		return
+	if not is_instance_valid(merchant_ship):
+		merchant_ship = Assets.scenery("sailboat",0,0.8)
+		add_child(merchant_ship)
+		Assets.label(merchant_ship,"Mercader",Vector3(0,2.5,0),22)
+	var visit: Dictionary = snapshot.merchant
+	var day: float = visit.duration/4.0
+	var progress: float = clampf(1.0-visit.elapsed/day,0,1) if visit.elapsed < day else clampf((visit.elapsed-day*3)/day,0,1)
+	var index: int = mini(visit.path.size()-1,int(progress*(visit.path.size()-1)))
+	var cell: int = visit.path[index]
+	merchant_ship.position = Vector3(cell%map_size+0.5,Landscape.WATER_LEVEL,cell/map_size+0.5)

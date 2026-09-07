@@ -1,12 +1,12 @@
 extends RefCounted
 ## Ría interior: Pontevedra–Combarro–Marín. Norte arriba; geografía estilizada.
-const ID: String = "pontevedra-inner-ria-v1"
-const SIZE: int = 128
-const START: Vector2i = Vector2i(95,32)
-const START_FOCUS: Vector3 = Vector3(100,0,32)
-const OVERVIEW_FOCUS: Vector3 = Vector3(64,0,64)
-const OVERVIEW_ZOOM: float = 145
-const BURGO_BRIDGE: Rect2i = Rect2i(100,14,2,10)
+const ID: String = "pontevedra-inner-ria-v5"
+const SIZE: int = 512
+const START: Vector2i = Vector2i(444,128)
+const START_FOCUS: Vector3 = Vector3(443,0,130)
+const OVERVIEW_FOCUS: Vector3 = Vector3(256,0,256)
+const OVERVIEW_ZOOM: float = 580
+const BURGO_BRIDGE: Rect2i = Rect2i(440,46,2,22)
 
 # Ambas orillas y el Lérez forman una sola lámina de agua que sale por el oeste.
 # El tramo local ocupa el tablero completo; las otras rías quedan fuera del mapa.
@@ -25,35 +25,38 @@ const WATER_OUTLINE: Array[Vector2] = [
 	Vector2(39,110),Vector2(28,117),Vector2(13,126),Vector2(-1,130)
 ]
 const LANDMARKS: Array = [
-	{"label":"PONTEVEDRA","x":103,"z":32},
-	{"label":"COMBARRO","x":22,"z":42},
-	{"label":"MARÍN","x":44,"z":112},
-	{"label":"POIO","x":57,"z":18},
-	{"label":"CAMPELO","x":55,"z":32},
-	{"label":"LOURIDO","x":80,"z":22},
-	{"label":"LOURIZÁN","x":81,"z":65},
-	{"label":"TAMBO","x":22,"z":80},
-	{"label":"RÍA DE PONTEVEDRA","x":45,"z":64},
-	{"label":"RÍO LÉREZ","x":113,"z":9}
+	{"label":"PONTEVEDRA","x":412,"z":128},
+	{"label":"COMBARRO","x":88,"z":168},
+	{"label":"MARÍN","x":176,"z":448},
+	{"label":"POIO","x":228,"z":72},
+	{"label":"CAMPELO","x":220,"z":128},
+	{"label":"LOURIDO","x":320,"z":88},
+	{"label":"LOURIZÁN","x":324,"z":260},
+	{"label":"TAMBO","x":88,"z":320},
+	{"label":"RÍA DE PONTEVEDRA","x":180,"z":256},
+	{"label":"RÍO LÉREZ","x":452,"z":36}
 ]
 
 static func generate(seed_value: int) -> Array:
 	var terrain: Array = []
-	var water: PackedVector2Array = PackedVector2Array(WATER_OUTLINE)
+	var water := PackedVector2Array()
+	for vertex: Vector2 in WATER_OUTLINE: water.append(vertex*4.0)
 	for z: int in range(SIZE):
 		for x: int in range(SIZE):
 			var point := Vector2(x+0.5,z+0.5)
 			var kind: String = "water" if Geometry2D.is_point_in_polygon(point,water) else "land"
 			if kind != "water":
-				var wave: float = sin(x*0.16)+cos(z*0.19)+sin((x+z+seed_value%31)*0.11)
+				var sx: float = x/4.0
+				var sz: float = z/4.0
+				var wave: float = sin(sx*0.16)+cos(sz*0.19)+sin((sx+sz+seed_value%31)*0.11)
 				if wave > 0.75: kind = "forest"
 				elif wave < -0.3: kind = "fertile"
 				# Montes y recursos en ambas orillas; depósitos adaptados para jugar.
-				if (z < 13 or (x > 90 and z > 65)) and wave > 0.2: kind = "rock"
-				if x > 103 and z > 75 and wave > 1.1: kind = "ore"
-				if x > 72 and x < 87 and z > 78 and z < 85: kind = "clay"
+				if (sz < 13 or (sx > 90 and sz > 65)) and wave > 0.2: kind = "rock"
+				if sx > 103 and sz > 75 and wave > 1.1: kind = "ore"
+				if sx > 72 and sx < 87 and sz > 78 and sz < 85: kind = "clay"
 				# Entorno inicial de A Moureira, al sur del Lérez.
-				var local := Vector2i(x,z)-START
+				var local := Vector2i((x-240)/2,(z-64)/2)-Vector2i(95,32)
 				if local.x >= 0 and local.x <= 17 and local.y >= -5 and local.y <= 10: kind = "land"
 				if local.x >= 7 and local.x <= 19 and local.y >= -15 and local.y <= -6: kind = "fertile"
 				if local.x >= 13 and local.x <= 20 and local.y >= 7 and local.y <= 16: kind = "forest"
@@ -61,8 +64,20 @@ static func generate(seed_value: int) -> Array:
 				if local.x >= 7 and local.x <= 12 and local.y >= 13 and local.y <= 17: kind = "clay"
 				if local.x >= 24 and local.x <= 29 and local.y >= 11 and local.y <= 17: kind = "ore"
 			# Tambo, separada de Combarro y Marín por canales navegables.
-			if pow((point.x-22)/6.0,2)+pow((point.y-79)/8.0,2) <= 1: kind = "forest"
+			if pow((point.x-88)/24.0,2)+pow((point.y-316)/32.0,2) <= 1: kind = "forest"
 			# Paso terrestre fijo: permite extender caminos hacia Poio y Combarro.
 			if BURGO_BRIDGE.has_point(Vector2i(x,z)): kind = "land"
 			terrain.append(kind)
 	return terrain
+
+static func main_road() -> Array:
+	var cells: Array = []
+	# A straight north–south road aligned with the narrow river crossing.
+	for z: int in range(SIZE): cells.append(z*SIZE+BURGO_BRIDGE.position.x)
+	return cells
+
+static func entrance() -> int:
+	return (SIZE-1)*SIZE+BURGO_BRIDGE.position.x
+
+static func exit_cell() -> int:
+	return BURGO_BRIDGE.position.x

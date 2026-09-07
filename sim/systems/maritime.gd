@@ -48,7 +48,7 @@ static func validate(sim: Variant, command: Dictionary) -> Dictionary:
 	if sim.state.trade_volume.get(key,0) + quantity > market.capacity*3: return sim.result("Cupo del puerto agotado; se renueva cada 10 días")
 	var cost: int = market.fee + (prices[resource]*quantity if direction == "buy" else 0)
 	if sim.state.coins < cost: return sim.result("Monedas insuficientes para carga y flete")
-	if direction == "buy" and Economy.total(sim.state.inventory)+reserved(sim)+quantity > Economy.capacity(sim): return sim.result("Sin espacio para la carga reservada")
+	if direction == "buy" and not Economy.has_room(sim,resource,quantity): return sim.result("Sin espacio para la carga reservada")
 	if direction == "sell" and sim.state.inventory[resource] < quantity: return sim.result("Existencias insuficientes")
 	var path: Array = harbor_path(sim,dock)
 	if path.is_empty(): return sim.result("El muelle necesita salida al Atlántico")
@@ -62,6 +62,7 @@ static func validate(sim: Variant, command: Dictionary) -> Dictionary:
 static func dispatch(sim: Variant, command: Dictionary, checked: Dictionary) -> void:
 	var port: Dictionary = sim.definitions.ports[command.port]
 	sim.state.coins -= checked.cost
+	sim.state.operating -= checked.cost
 	if command.direction == "sell": sim.state.inventory[command.resource] -= command.quantity
 	sim.state.trade_volume[checked.key] = sim.state.trade_volume.get(checked.key,0)+command.quantity
 	sim.state.voyages.append({"id":sim.state.next_voyage,"dock":command.dock,"port":command.port,"direction":command.direction,"resource":command.resource,"quantity":command.quantity,"value":checked.value,"elapsed":0,"duration":port.days*sim.definitions.balance.ticks_per_day,"path":checked.path,"status":"Navegando"})
@@ -82,6 +83,7 @@ static func step(sim: Variant) -> void:
 		if voyage.direction == "buy": sim.state.inventory[voyage.resource] += voyage.quantity
 		else:
 			sim.state.coins += voyage.value
+			sim.state.operating += voyage.value
 			sim.state.exported += voyage.quantity
 		sim.state.trade_completed += 1
 		sim.state.trade_history.push_front("%s · %s %d %s" % [sim.definitions.ports[voyage.port].label,"Importadas" if voyage.direction == "buy" else "Exportadas",voyage.quantity,sim.definitions.resources[voyage.resource].label])

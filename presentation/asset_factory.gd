@@ -45,31 +45,50 @@ static func label(parent: Node3D, text: String, at: Vector3, font_size: int = 32
 	parent.add_child(item)
 	return item
 
-static func building(kind: String, size: int, id: int, title: String, world_seed: int = 1530, identity: String = "") -> Node3D:
+static func building(kind: String, size: Variant, id: int, title: String, world_seed: int = 1530, identity: String = "", context: Dictionary = {}) -> Node3D:
 	var root := Node3D.new()
-	var s: float = float(size)
-	var model_kind: String = HOUSE_VARIANTS[posmod(id, HOUSE_VARIANTS.size())] if kind == "house" else kind
+	var extent: Vector2 = Vector2(size,size) if size is int else Vector2(size)
+	var s: float = extent.x
+	var depth: float = extent.y
+	var model_kind: String = context.get("model_family","house_cottage") if kind == "house" else kind
 	# Preserve the three established silhouettes; finite detail catalogues are optional.
 	model_kind = Models.Variants.choose(model_kind,world_seed,identity if not identity.is_empty() else str(id))
-	var orientation: float = 0.0
+	var front: int = context.get("front",2)
+	var orientation: float = (front+2)*PI*0.5
+	var fit_extent: Vector2 = Vector2(depth,s) if front%2 else extent
+	var joined: int = context.get("adjoined",0)
+	var context_family: String = model_kind+"_joined_%d" % joined
+	if joined > 0 and Models.Variants.catalog.families.has(context_family): model_kind = Models.Variants.choose(context_family,world_seed,identity)
 	var prototype: bool = not ResourceLoader.exists("res://assets/models/%s.glb" % model_kind)
-	var model: Node3D = null if prototype else Models.create(model_kind, orientation, Vector2.ONE * (s - 0.06))
+	var model: Node3D = null if prototype else Models.create(model_kind, orientation, fit_extent - Vector2.ONE*0.06)
 	root.set_meta("placeholder",prototype)
 	var height: float = 2.0
 	if model != null:
 		root.add_child(model)
-		model.position = Vector3(s / 2.0, 0.015, s / 2.0)
+		model.position = Vector3(s / 2.0, 0.015, depth / 2.0)
 		height = model.get_meta("model_height")
 	if prototype:
 		height = 1.2
 		var color: Color = Color.from_hsv(float(posmod(kind.hash(),360))/360.0,0.30,0.72)
-		box(root,Vector3(s-0.12,height,s-0.12),Vector3(s/2.0,height/2,s/2.0),color)
-	var name_label: Label3D = label(root, title, Vector3(s / 2.0, height + 0.55, s / 2.0), 26)
+		box(root,Vector3(s-0.12,height,depth-0.12),Vector3(s/2.0,height/2,depth/2.0),color)
+	root.set_meta("front",front)
+	root.set_meta("adjoined",joined)
+	root.set_meta("model_family",context.get("model_family",kind))
+	if context.get("ruined",false):
+		if model != null: model.scale.y = 0.25
+		height *= 0.25
+	if int(context.get("burn_days",0)) > 0:
+		for i: int in range(3):
+			box(root,Vector3(0.18,0.65+i*0.14,0.18),Vector3(s/2.0+(i-1)*0.24,height+0.1,depth/2.0),Color("#ed852d"))
+	var name_label: Label3D = label(root, title, Vector3(s / 2.0, height + 0.55, depth / 2.0), 26)
 	name_label.name = "Title"
 	name_label.visible = prototype
-	var status: Label3D = label(root, "", Vector3(s / 2.0, height + 0.22, s / 2.0), 23)
+	var status: Label3D = label(root, "", Vector3(s / 2.0, height + 0.22, depth / 2.0), 23)
 	status.name = "Status"
 	status.hide()
+	var workers: Label3D = label(root,"●",Vector3(s/2.0,height+0.30,depth/2.0),22)
+	workers.name = "Workers"
+	workers.hide()
 	return root
 
 static func scenery(kind: String, angle: float = 0.0, scale_value: float = 1.0) -> Node3D:
@@ -77,8 +96,8 @@ static func scenery(kind: String, angle: float = 0.0, scale_value: float = 1.0) 
 	if model != null: model.scale = Vector3.ONE * scale_value
 	return model
 
-static func road() -> Node3D:
-	return Models.create("road", 0.0, Vector2.ONE * 0.98, true)
+static func road(surface: String = "paved") -> Node3D:
+	return Models.create(preload("res://sim/road_surfaces.gd").model(surface), 0.0, Vector2.ONE * 0.98, true)
 
 static func citizen(id: int) -> Node3D:
 	var root: Node3D = Models.create("citizen")

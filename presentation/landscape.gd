@@ -29,6 +29,7 @@ func setup(snapshot: Dictionary) -> void:
 	_build_water()
 	var bridge: Node3D = Models.create_variant("bridge_stone",world_seed,"burgo-bridge")
 	bridge.name = "BurgoBridge"
+	bridge.scale.z = Map.BURGO_BRIDGE.size.y/10.0
 	bridge.position = Vector3(Map.BURGO_BRIDGE.get_center().x,-1.55,Map.BURGO_BRIDGE.get_center().y)
 	add_child(bridge)
 	_scatter()
